@@ -1,0 +1,31 @@
+# config/__init__.py
+# Varsayılan parametre konfigürasyonu alt paketi
+from .defaults import (
+    ELECTRODE_POS,
+    MRG_PARAMS,
+    DEFAULT_FREQUENCIES,
+    DEFAULT_AMP,
+    DEFAULT_N_FIBERS,
+    DEFAULT_FIBER_DIAM,
+    DEFAULT_N_NODES,
+    DEFAULT_ACTIVE_THRESHOLD_HZ,
+    NTS_PARAMS,
+    NAC_PATHWAY_PARAMS,
+    INSULA_PATHWAY_PARAMS,
+    CA3_PATHWAY_PARAMS,
+)
+
+__all__ = [
+    "ELECTRODE_POS",
+    "MRG_PARAMS",
+    "DEFAULT_FREQUENCIES",
+    "DEFAULT_AMP",
+    "DEFAULT_N_FIBERS",
+    "DEFAULT_FIBER_DIAM",
+    "DEFAULT_N_NODES",
+    "DEFAULT_ACTIVE_THRESHOLD_HZ",
+    "NTS_PARAMS",
+    "NAC_PATHWAY_PARAMS",
+    "INSULA_PATHWAY_PARAMS",
+    "CA3_PATHWAY_PARAMS",
+]

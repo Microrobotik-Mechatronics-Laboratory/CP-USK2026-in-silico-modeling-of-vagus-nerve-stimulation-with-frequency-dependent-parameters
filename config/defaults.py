@@ -1,0 +1,133 @@
+"""
+config/defaults.py
+==================
+Tüm simülasyon parametrelerinin merkezi deposu.
+
+Notebook'taki dağınık sabitler burada toplandı. main.py'deki argparse
+argümanlarının varsayılan değerleri buradan okunur; bu sayede tek bir
+yerden tüm parametreler değiştirilebilir.
+
+Kaynak: nerve_frequency_study_colab.ipynb — çeşitli hücrelerden toplanan sabitler.
+"""
+
+# ---------------------------------------------------------------------------
+# Elektrot geometrisi
+# ---------------------------------------------------------------------------
+# (x, y, z) koordinatları mikrometre cinsinden.
+# Aksondan 500 µm uzakta, z ekseni boyunca 5 mm konumda.
+ELECTRODE_POS = (500.0, 0.0, 5000.0)  # µm
+
+# ---------------------------------------------------------------------------
+# MRG akson parametreleri
+# McIntyre, Richardson, Grill (2002) — ModelDB Acc. 3810
+# Anahtar: fiber çapı (µm)
+# Değer: (node_diam, node_length, internode_length, n_myelin_lamellae)
+# ---------------------------------------------------------------------------
+MRG_PARAMS = {
+    5.7:  (1.9, 1.0,  500, 80),   # Aδ — ağrı, sıcaklık
+    8.7:  (2.8, 1.0,  750, 110),  # Aβ — dokunma
+    12.8: (3.4, 1.0, 1150, 130),  # Aα — motor, propriosepsiyon
+    16.0: (4.7, 1.0, 1400, 150),  # Aα (kalın) — büyük motor
+}
+
+# ---------------------------------------------------------------------------
+# Varsayılan simülasyon parametreleri
+# ---------------------------------------------------------------------------
+DEFAULT_AMP           = 3.0    # Uyarım genliği (µA)
+DEFAULT_N_FIBERS      = 20     # Fiber demeti büyüklüğü
+DEFAULT_FIBER_DIAM    = 8.7    # MRG akson çapı (µm)
+DEFAULT_N_NODES       = 15     # MRG düğüm sayısı
+DEFAULT_ELEC_Z        = 3000.0 # Elektrot z konumu run_level1 için (µm)
+DEFAULT_PULSE_WIDTH   = 0.1    # Puls genişliği (ms)
+DEFAULT_DT            = 0.005  # Zaman adımı (ms)
+DEFAULT_N_CYCLES      = 8      # Adaptif süre hesabı için minimum döngü sayısı
+DEFAULT_MIN_MS        = 200    # Minimum simülasyon süresi (ms)
+DEFAULT_MAX_MS        = 1000   # Maksimum simülasyon süresi (ms)
+
+# ---------------------------------------------------------------------------
+# Tarama frekansları
+# ---------------------------------------------------------------------------
+# Aktivasyon bölgesi (düşük frekans) + KHFAC blok bölgesi (yüksek frekans)
+DEFAULT_FREQUENCIES = [1, 5, 10, 20, 50, 100, 200, 500]
+
+LOW_FREQ_RANGE  = [1, 2, 5, 10, 20, 50, 100, 200, 500]        # Hz
+HIGH_FREQ_RANGE = [1000, 2000, 5000, 10000, 20000, 50000]      # Hz (KHFAC)
+
+# ---------------------------------------------------------------------------
+# Analiz eşiği
+# ---------------------------------------------------------------------------
+DEFAULT_ACTIVE_THRESHOLD_HZ = 0.5  # Hz/nöron — bu değerin üstü "aktif" sayılır
+
+# ---------------------------------------------------------------------------
+# NTS relay parametreleri (Level 2)
+# ---------------------------------------------------------------------------
+NTS_PARAMS = {
+    "n_neurons": 30,
+    "tau_m_ms": 20.0,
+    "refractory_ms": 2.0,
+    # Afferent → NTS TM sinaps parametreleri
+    "U": 0.5,
+    "tau_f_ms": 20.0,
+    "tau_d_ms": 700.0,
+    "p": 0.3,
+    "w_nS": 6.0,
+}
+
+# ---------------------------------------------------------------------------
+# Downstream bölge parametreleri (Level 3)
+# ---------------------------------------------------------------------------
+
+# NAc — Nucleus Accumbens
+# Güçlü fasilitasyon: düşük frekansta sessiz, yüksek frekansta aktif
+NAC_PATHWAY_PARAMS = {
+    "n_neurons": 100,
+    "tau_m_ms": 30.0,
+    "refractory_ms": 3.0,
+    # NTS → NAc TM sinaps parametreleri
+    "U": 0.05,
+    "tau_f_ms": 500.0,
+    "tau_d_ms": 100.0,
+    "p": 0.3,
+    "w_nS": 9.0,
+}
+
+# Insula — İnsüla Korteksi
+# Hafif depresyon: düşük frekanstan itibaren yanıt — direkt röle gibi
+INSULA_PATHWAY_PARAMS = {
+    "n_neurons": 100,
+    "tau_m_ms": 20.0,
+    "refractory_ms": 3.0,
+    # NTS → İnsula TM sinaps parametreleri
+    "U": 0.4,
+    "tau_f_ms": 10.0,
+    "tau_d_ms": 150.0,
+    "p": 0.3,
+    "w_nS": 7.0,
+}
+
+# CA3 — Cornu Ammonis 3 (Hipokampüs)
+# Orta fasilitasyon + rekürrent kolateraller
+CA3_PATHWAY_PARAMS = {
+    "n_neurons": 100,
+    "tau_m_ms": 20.0,
+    "refractory_ms": 3.0,
+    # NTS → CA3 TM sinaps parametreleri
+    "U": 0.2,
+    "tau_f_ms": 150.0,
+    "tau_d_ms": 300.0,
+    "p": 0.3,
+    "w_nS": 6.0,
+    # Rekürrent kolateral parametreleri
+    "recurrent_p": 0.12,
+    "recurrent_w_nS": 1.0,
+}
+
+# ---------------------------------------------------------------------------
+# Görselleştirme renkleri (bölgeye göre)
+# ---------------------------------------------------------------------------
+REGION_COLORS = {
+    "NTS":   "#888888",
+    "NAc":   "#d95f02",
+    "Insula": "#1b9e77",
+    "CA3":   "#7570b3",
+}
