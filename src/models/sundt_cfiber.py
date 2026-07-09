@@ -23,6 +23,8 @@ Kaynak: nerve_frequency_study_colab.ipynb — Cell 12
 import numpy as np
 from neuron import h
 
+from src.models._neuron_mechanisms import ensure_mechanisms_loaded
+
 h.load_file("stdrun.hoc")
 
 
@@ -41,6 +43,7 @@ def _has_sundt_mechanism():
     nahh: C-fiber'a özgü Na+ kanal kinetiği.
     borgkdr: Geciktirilmiş düzeltici K+ kanalı (delayed rectifier).
     """
+    ensure_mechanisms_loaded()
     return hasattr(h, "nahh") or hasattr(h, "borgkdr")
 
 

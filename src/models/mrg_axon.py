@@ -15,7 +15,7 @@ Yapı:
     - Saltatory conduction: AP düğümden düğüme 'sıçrar' (120 m/s'ye kadar).
 
 Mekanizma önceliği:
-    1. axnode70 / MRGaxon (gerçek MRG mekanizması — derlenmiş .mod gerektirir)
+    1. axnode / MRGaxon (gerçek MRG mekanizması — derlenmiş .mod gerektirir)
     2. HH (Hodgkin-Huxley) fallback — kurulum gerektirmez, kalitatif sonuçlar
 
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 10
@@ -25,13 +25,14 @@ import numpy as np
 from neuron import h
 
 from config.defaults import MRG_PARAMS
+from src.models._neuron_mechanisms import ensure_mechanisms_loaded
 
 h.load_file("stdrun.hoc")
 
 
 def _has_mrg_mechanism():
     """
-    Derlenmiş MRG mekanizmasının (axnode70 veya MRGaxon) mevcut olup
+    Derlenmiş MRG mekanizmasının (axnode veya MRGaxon) mevcut olup
     olmadığını kontrol eder.
 
     Döndürür
@@ -42,11 +43,14 @@ def _has_mrg_mechanism():
 
     Notlar
     ------
-    axnode70: MRG modelinin Ranvier düğümü mekanizması.
+    axnode: MRG modelinin Ranvier düğümü mekanizması (mechanisms/AXNODE.mod
+    içindeki SUFFIX adı — orijinal ModelDB dosyasında "axnode70" değil
+    "axnode" olarak tanımlı).
     Nav1.6, Nav1.1, geciktirilmiş K+, kalıcı Na+ kanallarını içerir.
     Derleme: `nrnivmodl` komutu ile .mod dosyalarından oluşturulur.
     """
-    return hasattr(h, "axnode70") or hasattr(h, "MRGaxon")
+    ensure_mechanisms_loaded()
+    return hasattr(h, "axnode") or hasattr(h, "MRGaxon")
 
 
 class MRGAxon:
@@ -109,7 +113,7 @@ class MRGAxon:
             node.insert("extracellular")  # e_extracellular için zorunlu
 
             if use_mrg:
-                node.insert("axnode70")
+                node.insert("axnode")
             else:
                 # Hodgkin-Huxley fallback
                 # HH: Nobel 1963, kalamar dev aksonunu 4 denklemle (m, h, n, V) modelliyor.
