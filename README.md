@@ -166,6 +166,64 @@ python main.py --help
 ## 🗺️ Geliştirme Fazları
 
 - ✅ **Faz 1**: Notebook → modüler Python yapısı + CLI (tamamlandı)
-- ⬜ **Faz 2**: Modülleri birleştirip `main.py` ile çalıştırma
-- ⬜ **Faz 3**: Sorunlu kısımların tespiti ve düzeltilmesi
+- ✅ **Faz 2**: Modülleri birleştirip `main.py` ile çalıştırma (tamamlandı)
+- 🔶 **Faz 3**: Sorunlu kısımların tespiti ve düzeltilmesi (kısmen)
 - ⬜ **Faz 4**: Kod kalitesi, dokümantasyon ve verimlilik iyileştirmeleri
+
+---
+
+## 📝 Commit Formatı
+
+```
+tip(kapsam): kısa açıklama
+
+Örnekler:
+  fix(models): fizyolojik sıcaklık ayarı — h.celsius = 37°C
+  feat(pipeline): paralel frekans sweep — multiprocessing
+  docs(readme): kurulum adımları güncellendi
+  refactor(config): magic number'lar defaults.py'e taşındı
+  test(analysis): point_source_potential sayısal doğrulama
+  chore(gitignore): derleme çıktıları eklendi
+```
+
+| Tip | Kullanım |
+|:---|:---|
+| `fix` | Hata düzeltme |
+| `feat` | Yeni özellik |
+| `docs` | Yalnızca dokümantasyon |
+| `refactor` | Davranış değiştirmeyen yeniden yapılandırma |
+| `test` | Test ekleme/güncelleme |
+| `chore` | Araç/yapılandırma değişiklikleri |
+
+---
+
+## 🐍 Python Kodlama Standartları
+
+### Stil
+- **PEP 8** — 4 boşluk girinti, maks 100 karakter satır
+- Değişken/fonksiyon: `snake_case` | Sınıf: `PascalCase` | Sabit: `UPPER_SNAKE_CASE`
+- Magic number yok — tüm sabitler `config/defaults.py`'de
+
+### Docstring Formatı
+
+```python
+def fonksiyon(param: float, opsiyonel: int = 10) -> list:
+    """
+    Tek cümle özet.
+
+    Parametreler
+    ------------
+    param : float
+        Açıklama.
+    opsiyonel : int, optional
+        Açıklama. Varsayılan 10.
+
+    Döndürür
+    --------
+    list
+        Açıklama.
+    """
+```
+
+- Türkçe docstring tercih edilir (biyolojik terimler İngilizce kalabilir)
+- Her public fonksiyon ve sınıf docstring'e sahip olmalı
