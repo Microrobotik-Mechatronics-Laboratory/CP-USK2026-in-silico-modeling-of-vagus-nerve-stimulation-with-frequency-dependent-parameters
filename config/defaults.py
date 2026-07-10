@@ -39,6 +39,11 @@ DEFAULT_FIBER_DIAM    = 8.7    # MRG akson çapı (µm)
 DEFAULT_N_NODES       = 15     # MRG düğüm sayısı
 DEFAULT_ELEC_Z        = 3000.0 # Elektrot z konumu run_level1 için (µm)
 DEFAULT_PULSE_WIDTH   = 0.1    # Puls genişliği (ms)
+DEFAULT_CELSIUS       = 37.0   # Fizyolojik hedef sıcaklık (°C) — ŞUANDA KULLANILMIYOR.
+                                # AXNODE.mod parametreleri NEURON varsayılanı (6.3°C)
+                                # için kalibre edilmiş; 37°C'de eşik ~50 µA oluyor
+                                # (fizyolojik ~1-2 µA olmalı). Faz 4'te .mod
+                                # parametrelerini 37°C için yeniden fit etmek gerekiyor.
 DEFAULT_DT            = 0.005  # Zaman adımı (ms)
 DEFAULT_N_CYCLES      = 8      # Adaptif süre hesabı için minimum döngü sayısı
 DEFAULT_MIN_MS        = 200    # Minimum simülasyon süresi (ms)
