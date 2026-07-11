@@ -47,6 +47,33 @@ def neuron_spikes_to_brian_group(spike_times_ms, n_fibers=1, fiber_index=0):
     return SpikeGeneratorGroup(n_fibers, indices, times)
 
 
+def _build_spike_generator(n_fibers, all_times_ms, all_indices):
+    """
+    Zaman sırasına göre sıralanmış SpikeGeneratorGroup oluşturur.
+
+    Brian2 SpikeGeneratorGroup zaman sırasına göre sıralanmış girdi bekler;
+    bu yardımcı fonksiyon argsort ile sıralamayı merkezi hale getirir.
+
+    Parametreler
+    ------------
+    n_fibers : int
+        Grup büyüklüğü (nöron sayısı).
+    all_times_ms : list veya np.ndarray of float
+        Sırasız spike zamanları (ms).
+    all_indices : list veya np.ndarray of int
+        all_times_ms ile aynı uzunlukta, her spike'ın hangi fibere ait
+        olduğunu belirten indeksler.
+
+    Döndürür
+    --------
+    brian2.SpikeGeneratorGroup
+    """
+    order = np.argsort(all_times_ms)
+    times = np.array(all_times_ms)[order] * ms
+    indices = np.array(all_indices)[order]
+    return SpikeGeneratorGroup(n_fibers, indices, times)
+
+
 def merge_fiber_populations(fiber_spike_lists):
     """
     Birden fazla fiberin spike zamanlarını tek bir SpikeGeneratorGroup'ta birleştirir.
@@ -74,12 +101,7 @@ def merge_fiber_populations(fiber_spike_lists):
             all_times.append(t)
             all_indices.append(fib_idx)
 
-    # Zaman sırasına göre sırala (Brian2 gereksinimi)
-    order = np.argsort(all_times)
-    times = np.array(all_times)[order] * ms
-    indices = np.array(all_indices)[order]
-
-    return SpikeGeneratorGroup(n_fibers, indices, times)
+    return _build_spike_generator(n_fibers, all_times, all_indices)
 
 
 def bundle_from_single_fiber(spike_times_ms, n_fibers=20, jitter_ms=0.4, seed=0):
@@ -121,7 +143,4 @@ def bundle_from_single_fiber(spike_times_ms, n_fibers=20, jitter_ms=0.4, seed=0)
         jittered = np.clip(jittered, 0, None)
         all_times.extend(jittered.tolist())
         all_idx.extend([fib] * len(spike_times_ms))
-    order = np.argsort(all_times)
-    times = np.array(all_times)[order] * ms
-    idx = np.array(all_idx)[order]
-    return SpikeGeneratorGroup(n_fibers, idx, times)
+    return _build_spike_generator(n_fibers, all_times, all_idx)
