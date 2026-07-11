@@ -79,10 +79,10 @@ DEFAULT_BRIAN_DT_MS: float = 0.1   # defaultclock.dt (ms) — run_levels_2_3 ve 
 # Tarama frekansları
 # ---------------------------------------------------------------------------
 # Aktivasyon bölgesi (düşük frekans) + KHFAC blok bölgesi (yüksek frekans)
-DEFAULT_FREQUENCIES: list[int] = [1, 5, 10, 20, 50, 100, 200, 500]
+DEFAULT_FREQUENCIES: list[float] = [1, 5, 10, 20, 50, 100, 200, 500]
 
-LOW_FREQ_RANGE: list[int]  = [1, 2, 5, 10, 20, 50, 100, 200, 500]        # Hz
-HIGH_FREQ_RANGE: list[int] = [1000, 2000, 5000, 10000, 20000, 50000]      # Hz (KHFAC)
+LOW_FREQ_RANGE: list[float]  = [1, 2, 5, 10, 20, 50, 100, 200, 500]        # Hz
+HIGH_FREQ_RANGE: list[float] = [1000, 2000, 5000, 10000, 20000, 50000]      # Hz (KHFAC)
 
 # ---------------------------------------------------------------------------
 # Analiz eşiği

@@ -11,14 +11,18 @@ visualization/plots.py
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 32, 34, 36, 38
 """
 
+from typing import Optional
+
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 import pandas as pd
 
 from config.defaults import REGION_COLORS, DEFAULT_ACTIVE_THRESHOLD_HZ
 
 
-def _save_or_show(fig, save_path):
+def _save_or_show(fig: Figure, save_path: Optional[str]) -> None:
     """
     Grafiği dosyaya kaydeder (save_path verilmişse) veya ekranda gösterir.
 
@@ -34,7 +38,10 @@ def _save_or_show(fig, save_path):
         plt.show()
 
 
-def plot_region_curves(df, regions=None, colors=None, save_path=None):
+def plot_region_curves(
+    df: pd.DataFrame, regions: Optional[list[str]] = None,
+    colors: Optional[dict[str, str]] = None, save_path: Optional[str] = None,
+) -> tuple[Figure, Axes]:
     """
     Her bölge için ateşleme hızı vs. stimülasyon frekansı eğrilerini çizer.
 
@@ -85,7 +92,9 @@ def plot_region_curves(df, regions=None, colors=None, save_path=None):
     return fig, ax
 
 
-def plot_heatmap(df, regions=None, save_path=None):
+def plot_heatmap(
+    df: pd.DataFrame, regions: Optional[list[str]] = None, save_path: Optional[str] = None,
+) -> tuple[Figure, Axes]:
     """
     Bölge × frekans ısı haritası çizer.
 
@@ -135,7 +144,10 @@ def plot_heatmap(df, regions=None, save_path=None):
     return fig, ax
 
 
-def plot_grouped_bar(df, regions=None, colors=None, save_path=None):
+def plot_grouped_bar(
+    df: pd.DataFrame, regions: Optional[list[str]] = None,
+    colors: Optional[dict[str, str]] = None, save_path: Optional[str] = None,
+) -> tuple[Figure, Axes]:
     """
     Her frekans için bölgeleri yan yana karşılaştıran gruplandırılmış çubuk grafik.
 
@@ -184,9 +196,11 @@ def plot_grouped_bar(df, regions=None, colors=None, save_path=None):
     return fig, ax
 
 
-def plot_dissociation_table(df, regions=None,
-                            threshold_hz=DEFAULT_ACTIVE_THRESHOLD_HZ,
-                            save_path=None):
+def plot_dissociation_table(
+    df: pd.DataFrame, regions: Optional[list[str]] = None,
+    threshold_hz: float = DEFAULT_ACTIVE_THRESHOLD_HZ,
+    save_path: Optional[str] = None,
+) -> pd.DataFrame:
     """
     Hangi frekansın hangi bölgeyi aktive ettiğini gösteren dissociation tablosu.
 

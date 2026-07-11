@@ -43,7 +43,7 @@ import sys
 # Argüman ayrıştırıcı
 # ---------------------------------------------------------------------------
 
-def build_parser():
+def build_parser() -> argparse.ArgumentParser:
     """CLI argüman ayrıştırıcısını oluşturur."""
     parser = argparse.ArgumentParser(
         prog="main.py",
@@ -180,7 +180,7 @@ def build_parser():
 # Ana fonksiyon
 # ---------------------------------------------------------------------------
 
-def main():
+def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
