@@ -8,7 +8,7 @@ Periferik sinir stimülasyonunun frekansa bağlı beyin bölgesi yanıtlarını
 
 ---
 
-## 🧠 Projenin Amacı
+## Projenin Amacı
 
 > *"Vagus sinirini 5 Hz ile mi, 50 Hz ile mi, 200 Hz ile mi uyarırsam,
 > NAc, İnsula ve CA3 gibi farklı beyin bölgelerindeki aktivite nasıl değişir?"*
@@ -19,7 +19,7 @@ ettiğini bilmek tedaviyi optimize etmek demektir.
 
 ---
 
-## 🏗️ Çok Ölçekli Mimari
+## Çok Ölçekli Mimari
 
 ```
 Level 1 (NEURON)           Level 2 (Brian2)              Level 3 (Brian2)
@@ -29,13 +29,14 @@ periferik akson       →    NTS relay sinapsı        →    NAc / İnsula / CA
 
 ---
 
-## 📁 Proje Yapısı
+## Proje Yapısı
 
 ```
 ulusal-sinirbilim-kongresi/
 │
 ├── main.py                          ← CLI giriş noktası (argparse)
-├── pyproject.toml                   ← Bağımlılık yönetimi (uv)
+├── pyproject.toml                   ← Bağımlılık yönetimi (uv) + mypy/pytest config
+├── REFERENCES.md                    ← Akademik referanslar (tam atıflar)
 ├── nerve_frequency_study_colab.ipynb ← Orijinal notebook (referans)
 ├── eski_kod_tutorial.md             ← Kavram sözlüğü ve derin analiz
 │
@@ -61,27 +62,35 @@ ulusal-sinirbilim-kongresi/
 ├── visualization/
 │   └── plots.py                     ← 3 grafik tipi + dissociation tablosu
 │
+├── tests/                           ← pytest birim testleri
+│
 └── config/
     └── defaults.py                  ← Tüm parametreler tek yerde
 ```
 
 ---
 
-## 🚀 Kurulum
+## Kurulum
 
 ```bash
 # 1. uv ile sanal ortam oluştur
-uv venv .venv --python 3.11
+uv venv --python 3.11
 
-# 2. Sanal ortamı aktive et
-source .venv/bin/activate
+# 2. Bağımlılıkları yükle (numpy<2.0 kısıtı kritik — NEURON numpy 2.x ile uyumsuz)
+uv pip install --python .venv/bin/python "numpy>=1.24,<2.0" pandas matplotlib brian2 neuron
 
-# 3. Bağımlılıkları yükle
-uv pip install numpy pandas matplotlib brian2 neuron
+# 3. Geliştirme bağımlılıkları (test + tip kontrolü, isteğe bağlı)
+uv pip install --python .venv/bin/python "pytest>=7.0" "mypy>=1.8"
 
-# 4. (İsteğe bağlı) MRG / Sundt mekanizmalarını derle
-# .mod dosyalarını proje dizinine kopyaladıktan sonra:
-# nrnivmodl .
+# 4. MRG / Sundt NEURON mekanizmalarını derle
+cd mechanisms && ../.venv/bin/nrnivmodl && cd ..
+```
+
+### Test ve Tip Kontrolü
+
+```bash
+.venv/bin/python -m pytest tests/ -v
+.venv/bin/python -m mypy config src visualization main.py tests
 ```
 
 ---
@@ -131,7 +140,7 @@ python main.py --help
 
 ---
 
-## 🔬 Biyolojik Bağlam
+## Biyolojik Bağlam
 
 ### Beyin Bölgeleri ve Pathway Tasarımı
 
@@ -151,24 +160,19 @@ python main.py --help
 | McIntyre, Richardson, Grill | 2002 | MRG akson modeli |
 | Sundt, Gamper, Jaffe | 2015 | C-fiber iyon kanal modeli |
 
+Tam atıflar ve ModelDB accession numaraları için: [REFERENCES.md](REFERENCES.md)
+
 ---
 
-## ⚠️ Önemli Uyarılar
+## Önemli Uyarılar
 
 1. **El ayarı parametreler**: TM parametreleri gerçek elektrofizyoloji verisine fit edilmemiş.
 2. **Tek stokastik deneme**: Güvenilir sonuç için 5-10 tekrar ortalaması alın.
 3. **20 fiber sınırlaması**: Gerçek vagus siniri ~80,000 fiber içerir.
-4. **İnhibisyon eksik**: CA3'te GABAerjik internöron yok (Faz 4 hedefi).
+4. **İnhibisyon eksik**: CA3'te GABAerjik internöron yok — biyolojik model
+   kalibrasyonu gerektirdiği için literatür incelemesi bekleniyor (bkz. aşağıdaki
+   Teorik Kısıt bölümü, TK-003).
 5. **HH fallback**: MRG mekanizması derlenmezse HH kullanılır — eşikler farklı çıkar.
-
----
-
-## 🗺️ Geliştirme Fazları
-
-- ✅ **Faz 1**: Notebook → modüler Python yapısı + CLI (tamamlandı)
-- ✅ **Faz 2**: Modülleri birleştirip `main.py` ile çalıştırma (tamamlandı)
-- 🔶 **Faz 3**: Sorunlu kısımların tespiti ve düzeltilmesi (kısmen)
-- ⬜ **Faz 4**: Kod kalitesi, dokümantasyon ve verimlilik iyileştirmeleri
 
 ---
 
