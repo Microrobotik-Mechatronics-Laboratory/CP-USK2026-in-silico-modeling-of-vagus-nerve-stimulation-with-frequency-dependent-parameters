@@ -23,6 +23,14 @@ from brian2 import (
 )
 
 from src.network.brain_regions import LIF_EQS
+from config.defaults import (
+    LIF_THRESHOLD_MV,
+    LIF_RESET_MV,
+    LIF_V_REST_MV,
+    LIF_E_SYN_MV,
+    LIF_GL_NS,
+    LIF_TAU_SYN_MS,
+)
 
 # ---------------------------------------------------------------------------
 # NTS nöron modeli — LIF denklemleri
@@ -93,17 +101,17 @@ def build_nts_relay(n_nts_neurons=50, synapse_type="depressing",
     """
     nts = NeuronGroup(
         n_nts_neurons, NTS_EQS,
-        threshold="v > -50*mV",
-        reset="v = -65*mV",
+        threshold=f"v > {LIF_THRESHOLD_MV}*mV",
+        reset=f"v = {LIF_RESET_MV}*mV",
         refractory=refractory_ms * ms,
         method="euler",
     )
-    nts.v = -65 * mV
-    nts.v_rest = -65 * mV
-    nts.E_syn = 0 * mV
-    nts.gL = 10 * nS
+    nts.v = LIF_V_REST_MV * mV
+    nts.v_rest = LIF_V_REST_MV * mV
+    nts.E_syn = LIF_E_SYN_MV * mV
+    nts.gL = LIF_GL_NS * nS
     nts.tau_m = tau_m * ms
-    nts.tau_syn = 5 * ms
+    nts.tau_syn = LIF_TAU_SYN_MS * ms
 
     if synapse_type == "depressing":
         # Depresyon: yüksek U → her spike'ta büyük stok kullanımı → tükenir

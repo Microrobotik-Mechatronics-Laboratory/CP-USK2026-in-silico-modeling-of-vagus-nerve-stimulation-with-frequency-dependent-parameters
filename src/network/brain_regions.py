@@ -27,6 +27,15 @@ from brian2 import (
     ms, mV, nS,
 )
 
+from config.defaults import (
+    LIF_THRESHOLD_MV,
+    LIF_RESET_MV,
+    LIF_V_REST_MV,
+    LIF_E_SYN_MV,
+    LIF_GL_NS,
+    LIF_TAU_SYN_MS,
+)
+
 # ---------------------------------------------------------------------------
 # LIF denklemleri (brain_regions için — nts_relay ile aynı form)
 # ---------------------------------------------------------------------------
@@ -42,7 +51,7 @@ tau_syn: second
 """
 
 
-def build_lif_population(n, tau_m, v_rest=-65 * mV, refractory=3 * ms):
+def build_lif_population(n, tau_m, v_rest=LIF_V_REST_MV * mV, refractory=3 * ms):
     """
     Genel amaçlı LIF popülasyonu oluşturur.
 
@@ -64,17 +73,17 @@ def build_lif_population(n, tau_m, v_rest=-65 * mV, refractory=3 * ms):
     """
     pop = NeuronGroup(
         n, LIF_EQS,
-        threshold="v > -50*mV",
-        reset="v = -65*mV",
+        threshold=f"v > {LIF_THRESHOLD_MV}*mV",
+        reset=f"v = {LIF_RESET_MV}*mV",
         refractory=refractory,
         method="euler",
     )
     pop.v = v_rest
     pop.v_rest = v_rest
-    pop.E_syn = 0 * mV    # AMPA benzeri eksitasyonlu sinaptik tersine çevirme potansiyeli
-    pop.gL = 10 * nS      # Sızıntı iletkenliği
+    pop.E_syn = LIF_E_SYN_MV * mV    # AMPA benzeri eksitasyonlu sinaptik tersine çevirme potansiyeli
+    pop.gL = LIF_GL_NS * nS          # Sızıntı iletkenliği
     pop.tau_m = tau_m
-    pop.tau_syn = 5 * ms  # Sinaptik iletkenlik azalma hızı
+    pop.tau_syn = LIF_TAU_SYN_MS * ms  # Sinaptik iletkenlik azalma hızı
     return pop
 
 
