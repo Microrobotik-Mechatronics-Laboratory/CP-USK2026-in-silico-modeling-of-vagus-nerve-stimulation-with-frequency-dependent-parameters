@@ -9,8 +9,6 @@ spike zamanlarını döndürür. Bu spike zamanları Level 2-3 (Brian2) girdisid
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 24
 """
 
-from neuron import h
-
 from config.defaults import (
     DEFAULT_DT,
     DEFAULT_PULSE_WIDTH,
@@ -18,7 +16,7 @@ from config.defaults import (
     DEFAULT_FIBER_DIAM,
 )
 from src.models.mrg_axon import MRGAxon
-from src.stim.extracellular_field import biphasic_waveform, apply_extracellular_field
+from src.stim.extracellular_field import biphasic_waveform, run_stimulation_loop
 
 
 def run_level1(freq_hz=20, amp=1.0, duration_ms=200, dt=DEFAULT_DT,
@@ -71,11 +69,6 @@ def run_level1(freq_hz=20, amp=1.0, duration_ms=200, dt=DEFAULT_DT,
         waveform="rectangular",
     )
 
-    h.dt = dt
-    h.finitialize(-65)  # Dinlenme potansiyeli: V=-65 mV, kanallar kapalı
-
-    for i_t in i_vec:
-        apply_extracellular_field(sections, coords, elec_pos, i_t)
-        h.fadvance()  # Bir zaman adımı ilerle (Crank-Nicolson integrasyon)
+    run_stimulation_loop(sections, coords, elec_pos, i_vec, dt)
 
     return list(spikes)

@@ -110,6 +110,44 @@ def biphasic_waveform(freq_hz, amp, duration_ms, dt=0.005,
     return t_vec, i_vec
 
 
+def run_stimulation_loop(sections, coords, elec_pos, i_vec, dt, v_init=-65.0):
+    """
+    Bir akım dalga formunu (i_vec) NEURON aksonuna adım adım uygular.
+
+    h.dt ayarlar, h.finitialize(v_init) çağırır, sonra i_vec'teki her değeri
+    apply_extracellular_field() ile uygulayıp h.fadvance() ile ilerler.
+    level1.py ve frequency_sweep.py'deki tekrar eden NEURON run-loop deseni
+    için ortak yardımcı fonksiyon.
+
+    Parametreler
+    ------------
+    sections : list of h.Section
+    coords : list of tuple(float, float, float)
+    elec_pos : tuple(float, float, float)
+    i_vec : np.ndarray
+        Her zaman adımı için akım değeri (µA).
+    dt : float
+        Zaman adımı (ms).
+    v_init : float, optional
+        Başlangıç/dinlenme membran potansiyeli (mV). Varsayılan -65.0.
+
+    Notlar
+    ------
+    h.finitialize(v_init) her çağrıda dinlenme potansiyeline sıfırlar — bu
+    fonksiyon birden fazla kez çağrılabilir (örn. sweep_fiber() içinde her
+    frekans için yeni fiber + yeni loop). Bu modül NEURON import'unu
+    fonksiyon içinde tutar; dosyanın geri kalanı (point_source_potential,
+    biphasic_waveform) NEURON kurulu olmadan da test edilebilir kalır.
+    """
+    from neuron import h
+
+    h.dt = dt
+    h.finitialize(v_init)
+    for i_t in i_vec:
+        apply_extracellular_field(sections, coords, elec_pos, i_t)
+        h.fadvance()
+
+
 def apply_extracellular_field(sections, coords, elec_pos, current):
     """
     Hesaplanan ekstrasellüler potansiyeli NEURON aksonu üzerindeki tüm
