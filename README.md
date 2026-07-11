@@ -8,6 +8,29 @@ Periferik sinir stimülasyonunun frekansa bağlı beyin bölgesi yanıtlarını
 
 ---
 
+## uv Kurulumu
+
+Bu proje bağımlılık ve sanal ortam yönetimi için [uv](https://docs.astral.sh/uv/)
+kullanır. Aşağıdaki adımlarla işletim sisteminize göre kurabilirsiniz
+(detaylar: [uv kurulum dokümantasyonu](https://docs.astral.sh/uv/getting-started/installation/)).
+
+**macOS / Linux:**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+**Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Kurulumdan sonra terminali yeniden başlatın ve doğrulayın:
+```bash
+uv --version
+```
+
+---
+
 ## Projenin Amacı
 
 > *"Vagus sinirini 5 Hz ile mi, 50 Hz ile mi, 200 Hz ile mi uyarırsam,
