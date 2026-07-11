@@ -32,9 +32,14 @@ from config.defaults import (
 )
 
 
-def _connect_region(source, target, p=0.25, w=5.0):
+def _connect_region_simple(source, target, p=0.25, w=5.0):
     """
     İki popülasyon arasında basit AMPA benzeri sinaps kurar (TM plastisiti olmadan).
+
+    Yalnızca run_levels_2_3() (test amaçlı basit pipeline) için kullanılır.
+    TM plastisitesi YOK — sabit ağırlıklı statik AMPA sinapsı. Gerçek pipeline
+    (run_full_network()) için src/network/nts_relay.py içindeki make_tm_conn()
+    kullanılır (tam Tsodyks-Markram plastisitesi).
 
     Parametreler
     ------------
@@ -99,7 +104,7 @@ def run_levels_2_3(spike_times_ms, duration_ms=200, n_nts=30, n_ca3=100):
     nts_syn = make_synapses(afferent, p=NTS_PARAMS["p"], w=NTS_PARAMS["w_nS"])
 
     ca3_pop, ca3_recurrent = build_ca3_r(n=n_ca3)
-    relay_to_ca3 = _connect_region(nts, ca3_pop, p=0.25)
+    relay_to_ca3 = _connect_region_simple(nts, ca3_pop, p=0.25)
 
     nts_mon = SpikeMonitor(nts)
     ca3_mon = SpikeMonitor(ca3_pop)
