@@ -23,7 +23,7 @@ Kaynak: nerve_frequency_study_colab.ipynb — Cell 22, Cell 26 (kısmen)
 """
 
 from brian2 import (
-    NeuronGroup, Synapses,
+    NeuronGroup, Synapses, Quantity,
     ms, mV, nS,
 )
 
@@ -51,7 +51,10 @@ tau_syn: second
 """
 
 
-def build_lif_population(n, tau_m, v_rest=LIF_V_REST_MV * mV, refractory=3 * ms):
+def build_lif_population(
+    n: int, tau_m: Quantity, v_rest: Quantity = LIF_V_REST_MV * mV,
+    refractory: Quantity = 3 * ms,
+) -> NeuronGroup:
     """
     Genel amaçlı LIF popülasyonu oluşturur.
 
@@ -87,7 +90,7 @@ def build_lif_population(n, tau_m, v_rest=LIF_V_REST_MV * mV, refractory=3 * ms)
     return pop
 
 
-def build_pop(n, tau_m, refractory=3 * ms):
+def build_pop(n: int, tau_m: Quantity, refractory: Quantity = 3 * ms) -> NeuronGroup:
     """
     build_lif_population için kısa takma ad.
 
@@ -109,7 +112,9 @@ def build_pop(n, tau_m, refractory=3 * ms):
     return build_lif_population(n, tau_m, refractory=refractory)
 
 
-def build_ca3_r(n=100, recurrent_p=0.12, recurrent_w=1.0 * nS):
+def build_ca3_r(
+    n: int = 100, recurrent_p: float = 0.12, recurrent_w: Quantity = 1.0 * nS,
+) -> tuple[NeuronGroup, Synapses]:
     """
     CA3 (Cornu Ammonis 3) rekürrent kolateral ağı oluşturur.
 
@@ -151,7 +156,7 @@ def build_ca3_r(n=100, recurrent_p=0.12, recurrent_w=1.0 * nS):
 # Bölgeye özgü kolaylık builder'ları
 # ---------------------------------------------------------------------------
 
-def build_nac(n=100):
+def build_nac(n: int = 100) -> NeuronGroup:
     """
     NAc (Nucleus Accumbens) popülasyonu.
 
@@ -166,7 +171,7 @@ def build_nac(n=100):
     return build_pop(n, tau_m=30 * ms, refractory=3 * ms)
 
 
-def build_insula(n=100):
+def build_insula(n: int = 100) -> NeuronGroup:
     """
     İnsula (İnsüla Korteksi) popülasyonu.
 
@@ -181,7 +186,9 @@ def build_insula(n=100):
     return build_pop(n, tau_m=20 * ms, refractory=3 * ms)
 
 
-def build_ca3(n=100, recurrent_p=0.12, recurrent_w=1.0 * nS):
+def build_ca3(
+    n: int = 100, recurrent_p: float = 0.12, recurrent_w: Quantity = 1.0 * nS,
+) -> tuple[NeuronGroup, Synapses]:
     """
     CA3 popülasyonu (build_ca3_r takma adı — daha açıklayıcı isim).
 

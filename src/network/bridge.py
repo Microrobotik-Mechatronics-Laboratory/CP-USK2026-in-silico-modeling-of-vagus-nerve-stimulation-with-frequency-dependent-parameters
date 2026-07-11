@@ -15,11 +15,15 @@ formata dönüştürür ("offline coupling" / "one-way coupling").
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 20, Cell 26 (kısmen)
 """
 
+from typing import Iterable, Sequence
+
 import numpy as np
 from brian2 import SpikeGeneratorGroup, ms
 
 
-def neuron_spikes_to_brian_group(spike_times_ms, n_fibers=1, fiber_index=0):
+def neuron_spikes_to_brian_group(
+    spike_times_ms: Iterable[float], n_fibers: int = 1, fiber_index: int = 0,
+) -> SpikeGeneratorGroup:
     """
     Tek bir fiberin spike zamanlarını Brian2 SpikeGeneratorGroup'a dönüştürür.
 
@@ -47,7 +51,9 @@ def neuron_spikes_to_brian_group(spike_times_ms, n_fibers=1, fiber_index=0):
     return SpikeGeneratorGroup(n_fibers, indices, times)
 
 
-def _build_spike_generator(n_fibers, all_times_ms, all_indices):
+def _build_spike_generator(
+    n_fibers: int, all_times_ms: Sequence[float], all_indices: Sequence[int],
+) -> SpikeGeneratorGroup:
     """
     Zaman sırasına göre sıralanmış SpikeGeneratorGroup oluşturur.
 
@@ -74,7 +80,9 @@ def _build_spike_generator(n_fibers, all_times_ms, all_indices):
     return SpikeGeneratorGroup(n_fibers, indices, times)
 
 
-def merge_fiber_populations(fiber_spike_lists):
+def merge_fiber_populations(
+    fiber_spike_lists: Sequence[Iterable[float]],
+) -> SpikeGeneratorGroup:
     """
     Birden fazla fiberin spike zamanlarını tek bir SpikeGeneratorGroup'ta birleştirir.
 
@@ -104,7 +112,10 @@ def merge_fiber_populations(fiber_spike_lists):
     return _build_spike_generator(n_fibers, all_times, all_indices)
 
 
-def bundle_from_single_fiber(spike_times_ms, n_fibers=20, jitter_ms=0.4, seed=0):
+def bundle_from_single_fiber(
+    spike_times_ms: Sequence[float], n_fibers: int = 20,
+    jitter_ms: float = 0.4, seed: int = 0,
+) -> SpikeGeneratorGroup:
     """
     Tek aksonun spike zamanlarından fiber demeti oluşturur.
 

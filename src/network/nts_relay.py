@@ -16,8 +16,10 @@ Kullanılan model:
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 21
 """
 
+from typing import Callable
+
 from brian2 import (
-    NeuronGroup, Synapses,
+    NeuronGroup, Synapses, Quantity,
     ms, mV, nS,
     defaultclock,
 )
@@ -70,8 +72,10 @@ x -= u * x
 """
 
 
-def build_nts_relay(n_nts_neurons=50, synapse_type="depressing",
-                    tau_m=20.0, refractory_ms=2.0):
+def build_nts_relay(
+    n_nts_neurons: int = 50, synapse_type: str = "depressing",
+    tau_m: float = 20.0, refractory_ms: float = 2.0,
+) -> tuple[NeuronGroup, Callable[..., Synapses]]:
     """
     NTS röle popülasyonu oluşturur.
 
@@ -121,7 +125,7 @@ def build_nts_relay(n_nts_neurons=50, synapse_type="depressing",
         # Fasilitasyon: düşük U → ilk spike zayıf, art arda spike'larla u birikir
         U_val, tau_f_ms, tau_d_ms = 0.05, 500.0, 100.0
 
-    def make_synapses(source, p=0.3, w=6.0):
+    def make_synapses(source: NeuronGroup, p: float = 0.3, w: float = 6.0) -> Synapses:
         """Afferent kaynak → NTS hedef TM sinapsı oluşturur."""
         syn = Synapses(source, nts, model=TM_SYN_EQS, on_pre=TM_ON_PRE, method="euler")
         syn.connect(p=p)
@@ -136,7 +140,10 @@ def build_nts_relay(n_nts_neurons=50, synapse_type="depressing",
     return nts, make_synapses
 
 
-def make_tm_conn(source, target, U, tau_f, tau_d, p, w):
+def make_tm_conn(
+    source: NeuronGroup, target: NeuronGroup, U: float, tau_f: Quantity,
+    tau_d: Quantity, p: float, w: Quantity,
+) -> Synapses:
     """
     Genel amaçlı Tsodyks-Markram sinaptik bağlantı oluşturur.
 
