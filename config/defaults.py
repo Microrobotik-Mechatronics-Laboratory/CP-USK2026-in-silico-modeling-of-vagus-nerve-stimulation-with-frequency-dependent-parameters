@@ -47,6 +47,13 @@ DEFAULT_CELSIUS       = 37.0   # Fizyolojik hedef sıcaklık (°C) — ŞUANDA K
 DEFAULT_DT            = 0.005  # Zaman adımı (ms)
 DEFAULT_N_CYCLES      = 8      # Adaptif süre hesabı için minimum döngü sayısı
 DEFAULT_MIN_MS        = 200    # Minimum simülasyon süresi (ms)
+                                # ADR (2026-07-11): Bu değer 200 ms olarak bırakıldı.
+                                # Faz 3 sweep testinde NAc hiç aktive olmadı (tüm frekanslarda 0.00).
+                                # Kök neden: NAc TM fasilitasyon zaman sabiti tau_f=500 ms;
+                                # 50+ Hz'de cycles_to_duration_ms() bu zemine çarpar (200 ms < 500 ms)
+                                # → fasilitasyon birikmeden simülasyon biter → NAc = 0.
+                                # Karar: Değeri 1000 ms'e çıkarmak NAc'ı aktive edebilir
+                                # ama yüksek frekanslarda simülasyon ~5x yavaşlar.
 DEFAULT_MAX_MS        = 1000   # Maksimum simülasyon süresi (ms)
 
 # ---------------------------------------------------------------------------
@@ -89,6 +96,10 @@ NAC_PATHWAY_PARAMS = {
     "tau_m_ms": 30.0,
     "refractory_ms": 3.0,
     # NTS → NAc TM sinaps parametreleri
+    # ADR (2026-07-11): U=0.05 (çok düşük salınım olasılığı) + tau_f_ms=500.0
+    # kombinasyonu NAc'ın yüksek frekansta aktive olmasını tasarım gereği sağlar.
+    # Ancak simülasyon süresi bu tau_f değerinden kısa olursa (bkz. DEFAULT_MIN_MS)
+    # fasilitasyon birikmez ve NAc hiç ateşlemez. Bu iki parametre birlikte ele alınmalı.
     "U": 0.05,
     "tau_f_ms": 500.0,
     "tau_d_ms": 100.0,
