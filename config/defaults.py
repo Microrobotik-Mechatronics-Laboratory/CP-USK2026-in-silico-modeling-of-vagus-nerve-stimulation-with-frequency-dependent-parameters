@@ -57,6 +57,25 @@ DEFAULT_MIN_MS        = 200    # Minimum simülasyon süresi (ms)
 DEFAULT_MAX_MS        = 1000   # Maksimum simülasyon süresi (ms)
 
 # ---------------------------------------------------------------------------
+# LIF / Brian2 ortak biyofizik sabitleri (nts_relay.py + brain_regions.py)
+# ---------------------------------------------------------------------------
+DEFAULT_V_INIT_MV = -65.0  # Başlangıç/dinlenme membran potansiyeli (mV) — NEURON tarafı
+                            # (run_stimulation_loop/h.finitialize). Brian2 popülasyon
+                            # dinlenme durumundan (LIF_V_REST_MV) kasıtlı olarak ayrı
+                            # tutulur — sayısal değer aynı ama kavramsal alan farklı.
+LIF_THRESHOLD_MV   = -50.0  # Spike eşiği (mV) — NTS + tüm downstream bölgeler ortak
+LIF_RESET_MV       = -65.0  # Reset potansiyeli (mV)
+LIF_V_REST_MV      = -65.0  # Dinlenme potansiyeli (mV)
+LIF_E_SYN_MV       = 0.0    # Sinaptik ters çevirme potansiyeli (mV) — AMPA benzeri eksitasyon
+LIF_GL_NS          = 10.0   # Sızıntı iletkenliği (nS)
+LIF_TAU_SYN_MS     = 5.0    # Sinaptik iletkenlik azalma zaman sabiti (ms)
+
+# ---------------------------------------------------------------------------
+# Brian2 simülasyon zaman adımı (level23.py)
+# ---------------------------------------------------------------------------
+DEFAULT_BRIAN_DT_MS = 0.1   # defaultclock.dt (ms) — run_levels_2_3 ve run_full_network ortak
+
+# ---------------------------------------------------------------------------
 # Tarama frekansları
 # ---------------------------------------------------------------------------
 # Aktivasyon bölgesi (düşük frekans) + KHFAC blok bölgesi (yüksek frekans)
