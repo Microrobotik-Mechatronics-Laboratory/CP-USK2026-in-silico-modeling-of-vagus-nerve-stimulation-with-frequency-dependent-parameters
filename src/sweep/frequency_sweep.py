@@ -10,6 +10,14 @@ Logaritmik dağılım kullanılır çünkü sinir sistemi logaritmik ölçekte �
     - "activation": Düşük frekanslarda (1 – 500 Hz) aktivasyon eşiği.
     - "block"     : Yüksek frekanslarda (1 – 50 kHz, KHFAC) iletim blok eşiği.
 
+Bu modül `main.py` CLI pipeline'ına entegre değildir (yalnızca
+`default_frequency_range()` `--full-range` bayrağı için kullanılır);
+`sweep_fiber()` ve ilişkili eşik-bulma fonksiyonları (`find_threshold`,
+`verify_bracket`) bağımsız/isteğe bağlı bir analiz aracı olarak kasıtlı
+olarak ayrı tutuluyor — sabit genlikle sweep yapan `run_frequency_sweep()`
+(orchestrator.py) ana pipeline'dır, bu modül alternatif bir eşik-frekans
+analizi sunar.
+
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 16
 """
 
