@@ -23,7 +23,7 @@ _MECHANISMS_DIR = os.path.join(_PROJECT_ROOT, "mechanisms")
 _loaded = False
 
 
-def ensure_mechanisms_loaded():
+def ensure_mechanisms_loaded() -> None:
     """
     Derlenmiş mekanizma kütüphanesini bir kez yükler.
 

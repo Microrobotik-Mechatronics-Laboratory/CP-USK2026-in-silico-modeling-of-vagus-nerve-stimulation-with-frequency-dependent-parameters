@@ -14,11 +14,13 @@ Karakteristikler:
 
 Mekanizma önceliği:
     1. nahh + borgkdr (Sundt/Gamper/Jaffe — derlenmiş .mod gerektirir)
-       ModelDB Accession: 189712
+       ModelDB Accession: 187473
     2. HH (Hodgkin-Huxley) fallback
 
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 12
 """
+
+from typing import Any
 
 import numpy as np
 from neuron import h
@@ -28,7 +30,7 @@ from src.models._neuron_mechanisms import ensure_mechanisms_loaded
 h.load_file("stdrun.hoc")
 
 
-def _has_sundt_mechanism():
+def _has_sundt_mechanism() -> bool:
     """
     Derlenmiş Sundt/Gamper/Jaffe mekanizmalarının mevcut olup olmadığını kontrol eder.
 
@@ -79,7 +81,7 @@ class CFiber:
     >>> spikes = fiber.record_distal_spikes()
     """
 
-    def __init__(self, diameter_um=0.8, length_um=20000, seg_length_um=100):
+    def __init__(self, diameter_um: float = 0.8, length_um: float = 20000, seg_length_um: float = 100) -> None:
         self.diameter = diameter_um
         self.length = length_um
         self.n_segs = max(1, int(length_um / seg_length_um))
@@ -87,7 +89,7 @@ class CFiber:
         self.section = h.Section(name="cfib_axon")
         self._build()
 
-    def _build(self):
+    def _build(self) -> None:
         """C-fiber section'ı oluşturur ve iyon kanallarını ekler."""
         sec = self.section
         sec.diam = self.diameter
@@ -107,7 +109,7 @@ class CFiber:
             sec.g_pas = 0.001  # S/cm² — miyelinsiz lif için daha yüksek sızıntı
             sec.e_pas = -70    # mV — C-fiber dinlenme potansiyeli
 
-    def all_sections(self):
+    def all_sections(self) -> list[Any]:
         """
         Section listesi döndürür (tek elemanlı — MRGAxon API uyumu için).
 
@@ -118,7 +120,7 @@ class CFiber:
         """
         return [self.section]
 
-    def section_coords(self, elec_z=5000.0):
+    def section_coords(self, elec_z: float = 5000.0) -> list[tuple[float, float, float]]:
         """
         Her segment için (x, y, z) koordinatlarını hesaplar.
 
@@ -137,7 +139,7 @@ class CFiber:
         # Tek section olduğundan orta noktasını döndürüyoruz
         return [(0.0, 0.0, self.length / 2)]
 
-    def record_distal_spikes(self, threshold=-20.0):
+    def record_distal_spikes(self, threshold: float = -20.0) -> Any:
         """
         Aksonun distal ucundaki spike zamanlarını kaydeden NetCon oluşturur.
 

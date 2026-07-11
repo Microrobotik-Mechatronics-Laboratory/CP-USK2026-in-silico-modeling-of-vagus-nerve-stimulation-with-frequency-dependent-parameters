@@ -21,6 +21,8 @@ Mekanizma önceliği:
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 10
 """
 
+from typing import Any
+
 import numpy as np
 from neuron import h
 
@@ -38,7 +40,7 @@ ensure_mechanisms_loaded()
 h.load_file("stdrun.hoc")
 
 
-def _has_mrg_mechanism():
+def _has_mrg_mechanism() -> bool:
     """
     Derlenmiş MRG mekanizmasının (axnode veya MRGaxon) mevcut olup
     olmadığını kontrol eder.
@@ -88,7 +90,7 @@ class MRGAxon:
     >>> spikes = fiber.record_last_node_spikes()
     """
 
-    def __init__(self, diameter_um=8.7, n_nodes=21):
+    def __init__(self, diameter_um: float = 8.7, n_nodes: int = 21) -> None:
         if diameter_um not in MRG_PARAMS:
             raise ValueError(
                 f"Desteklenmeyen fiber çapı: {diameter_um} µm. "
@@ -103,11 +105,11 @@ class MRGAxon:
         self._internode_len = internode_len
         self._n_lamellae = n_lamellae
 
-        self.nodes = []
-        self.internodes = []
+        self.nodes: list[Any] = []
+        self.internodes: list[Any] = []
         self._build()
 
-    def _build(self):
+    def _build(self) -> None:
         """Akson geometrisini ve iyon kanallarını oluşturur."""
         use_mrg = _has_mrg_mechanism()
 
@@ -155,7 +157,7 @@ class MRGAxon:
             self.internodes[i].connect(self.nodes[i](1), 0)
             self.nodes[i + 1].connect(self.internodes[i](1), 0)
 
-    def all_sections(self):
+    def all_sections(self) -> list[Any]:
         """
         Tüm section'ları (node + internode) sıralı liste olarak döndürür.
 
@@ -171,7 +173,7 @@ class MRGAxon:
         sections.append(self.nodes[-1])
         return sections
 
-    def section_coords(self, elec_z=5000.0):
+    def section_coords(self, elec_z: float = 5000.0) -> list[tuple[float, float, float]]:
         """
         Her section için (x, y, z) koordinatlarını hesaplar.
 
@@ -198,7 +200,7 @@ class MRGAxon:
         coords.append((0.0, 0.0, z + self._node_len / 2))
         return coords
 
-    def record_last_node_spikes(self):
+    def record_last_node_spikes(self) -> Any:
         """
         Aksonun distal ucundaki (son düğüm) spike zamanlarını kaydeden
         NetCon nesnesi ve spike zaman vektörü oluşturur.
