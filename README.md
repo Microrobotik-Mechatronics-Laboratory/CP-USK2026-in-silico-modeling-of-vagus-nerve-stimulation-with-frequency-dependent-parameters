@@ -86,7 +86,7 @@ uv pip install numpy pandas matplotlib brian2 neuron
 
 ---
 
-## 💻 Kullanım
+## Kullanım
 
 ```bash
 # Varsayılan parametrelerle hızlı test
@@ -172,7 +172,7 @@ python main.py --help
 
 ---
 
-## 📝 Commit Formatı
+## Commit Formatı
 
 ```
 tip(kapsam): kısa açıklama
@@ -197,7 +197,7 @@ tip(kapsam): kısa açıklama
 
 ---
 
-## 🐍 Python Kodlama Standartları
+## Python Kodlama Standartları
 
 ### Stil
 - **PEP 8** — 4 boşluk girinti, maks 100 karakter satır
@@ -227,3 +227,86 @@ def fonksiyon(param: float, opsiyonel: int = 10) -> list:
 
 - Türkçe docstring tercih edilir (biyolojik terimler İngilizce kalabilir)
 - Her public fonksiyon ve sınıf docstring'e sahip olmalı
+
+
+## Yapılacaklar - Teorik Kısıt
+
+> Bu bölüm, chatbot'un tek başına çözemeyeceği, literatür araştırması ve
+> editör (kullanıcı) yönlendirmesi gerektiren biyolojik/teorik sorunları biriktirir.
+> Chatbot bu sorunlar için kendi başına parametre değiştirmez veya "çözüm" uygulamaz;
+> önce bu bölüme ekler, ardından editörle tartışır.
+
+### TK-001 — NAc Frekansa Bağımlı İletim Bloku ve Dissociation Mekanizması
+
+**Tarih:** 2026-07-11
+**Sorun:** MRG modelinde 100+ Hz'de frekansa bağımlı iletim bloku gözlemleniyor.
+200 Hz'de ~40 puls uygulanmasına karşın distal düğümde yalnızca 2 spike kaydediliyor.
+Bu durum NAc'ın tasarım gereği gerektirdiği yüksek frekanslı spike akışını engelliyor;
+sonuç olarak NAc tüm frekanslarda 0.00 Hz/nöron'da kalıyor.
+
+**Teorik sorular (literatür araştırması gerekiyor):**
+- Gerçek VNS deneyleri 20-500 Hz aralığında aksonal iletim bloku gözlemliyor mu?
+- MRG modelinin maksimum takip frekansı ne kadar? (orijinal McIntyre 2002 makalesinde belirtilmiş mi?)
+- Distal düğüm yerine proximal düğüm (elektrot yakını) spike sayısı kullanmak
+  biyolojik olarak daha mı doğru olur?
+- NAc aktivasyonu için gerçekten yüksek frekanslı spike akışı mı gerekiyor, yoksa
+  başka bir mekanizma mı (volüm iletimi, nöromodülatör salınımı vb.) söz konusu?
+
+**Chatbot'un bekleyeceği yönlendirme:**
+Editör literatür tarayıp hangi axon kanalının hangi frekansta blok yaşadığını,
+ve NAc dissociation için hangi parametrenin değiştirilmesi gerektiğini belirleyecek.
+Ondan sonra chatbot kod tarafını uygular.
+
+### TK-002 — celsius/Q10 Kalibrasyonu (37°C Fizyolojik Sıcaklık)
+
+**Tarih:** 2026-07-11
+**Sorun:** `AXNODE.mod` parametreleri (Q10 faktörleri, satır 119-121) NEURON'un
+varsayılan sıcaklığı olan 6.3°C için kalibre edilmiş. `h.celsius = 37.0`
+set edildiğinde eşik ~50 µA'ya çıkıyor (fizyolojik olarak beklenen ~1-2 µA
+yerine) — çünkü 37°C'de Na+ inaktivasyon kapısı (h kapısı) aktivasyon
+kapısından (m kapısı) 1.7× daha hızlı kapanıyor (bkz. `TEKNIK_NOTLAR.md`).
+`DEFAULT_CELSIUS = 37.0` config'te tanımlı ama kullanılmıyor.
+
+**Teorik sorular (literatür araştırması gerekiyor):**
+- McIntyre, Richardson, Grill (2002) orijinal makalesinde 37°C için ayrı
+  Q10 referans değerleri veriliyor mu, yoksa yalnızca 6.3°C mi kalibre edilmiş?
+- ModelDB 3810 kaynak dosyalarında (varsa) 37°C'ye uyarlanmış bir `.mod`
+  varyantı mevcut mu?
+- Q10 üslerini (2.2, 2.9, 3.0) veya referans sıcaklıkları (20°C, 36°C)
+  yeniden fit etmek mi, yoksa yalnızca eşik ölçeklemesi mi doğru yaklaşım?
+- 6.3°C'de çalışmanın sonuçların niteliksel (kalitatif) yorumunu ne kadar
+  etkilediği bilinmeli — frekans-yanıt dissociation paternleri sıcaklıktan
+  bağımsız mı kalıyor?
+
+**Chatbot'un bekleyeceği yönlendirme:**
+Editör ModelDB 3810 kaynağını ve ilgili literatürü inceleyip Q10
+parametrelerinin nasıl yeniden fit edileceğini belirleyecek. Bu, biyofizik
+kanal modelinin (.mod dosyası) doğrudan değiştirilmesini gerektirdiği için
+chatbot kendi başına tahmin etmeyecek.
+
+### TK-003 — CA3 GABAerjik İnhibitör İnternöron Popülasyonu
+
+**Tarih:** 2026-07-11
+**Sorun:** `src/network/brain_regions.py::build_ca3_r()` yalnızca eksitatör
+rekürrent kolateraller içeriyor (`recurrent_p=0.12`, `recurrent_w=1.0 nS`).
+İnhibisyon olmadığı için bu ağırlık kasıtlı olarak düşük tutulmuş —
+fonksiyonun docstring'i ve `level23.py::run_full_network()`'ün uyarısı
+"Gelecek iyileştirme: GABAerjik inhibitör internöron eklemek" diyor.
+
+**Teorik sorular (literatür araştırması gerekiyor):**
+- CA3'te gerçek GABAerjik internöron oranı/bağlantı yoğunluğu nedir
+  (örn. PV+ basket hücreleri, hipokampal CA3 mikroçevresi literatürü)?
+- İnhibitör popülasyon büyüklüğü, zaman sabiti (tau_m, tau_syn) ve
+  sinaptik ağırlık nasıl parametrize edilmeli — feedback mi feedforward mu
+  inhibisyon modellenecek?
+- İnhibisyon eklendiğinde mevcut `recurrent_w_nS=1.0` değeri artırılabilir mi
+  (runaway excitation riski olmadan), yoksa mevcut düşük değer korunup
+  yalnızca inhibisyon mu eklenmeli?
+- Bu değişiklik CA3'ün frekans-yanıt profilini (orta fasilitasyon +
+  rekürrent amplifikasyon) nasıl etkiler — dissociation paternleri bozulur mu?
+
+**Chatbot'un bekleyeceği yönlendirme:**
+Editör CA3 inhibisyon literatürünü tarayıp internöron popülasyonu için
+biyolojik olarak makul parametre aralıklarını belirleyecek. Bu, yeni bir
+biyolojik bileşen (internöron tipi + bağlantı şeması) eklemeyi gerektirdiği
+için chatbot kendi başına parametre uydurmayacak.
