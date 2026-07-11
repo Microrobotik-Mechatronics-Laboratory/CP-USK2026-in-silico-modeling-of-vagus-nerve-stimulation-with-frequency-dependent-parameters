@@ -10,8 +10,13 @@ Aktivasyon veya iletim bloğu eşiğini bulan bisection (ikiye bölme) algoritma
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 14
 """
 
+from typing import Callable, Optional
 
-def find_threshold(run_trial_fn, amp_low, amp_high, tol=1e-4, max_iter=30):
+
+def find_threshold(
+    run_trial_fn: Callable[[float], bool], amp_low: float, amp_high: float,
+    tol: float = 1e-4, max_iter: int = 30,
+) -> Optional[float]:
     """
     Bisection yöntemiyle aktivasyon veya blok eşiğini bulur.
 
@@ -72,8 +77,10 @@ def find_threshold(run_trial_fn, amp_low, amp_high, tol=1e-4, max_iter=30):
     return 0.5 * (lo + hi)
 
 
-def verify_bracket(run_trial_fn, amp_low, amp_high,
-                   expand_factor=2.0, max_expansions=10):
+def verify_bracket(
+    run_trial_fn: Callable[[float], bool], amp_low: float, amp_high: float,
+    expand_factor: float = 2.0, max_expansions: int = 10,
+) -> Optional[tuple[float, float]]:
     """
     Bisection için geçerli bir aralık doğrular veya oluşturur.
 

@@ -11,10 +11,16 @@ Ekstrasellüler alan hesaplama ve uyarım dalga formu üreteci.
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 8
 """
 
+from typing import Any
+
 import numpy as np
 
 
-def point_source_potential(x, y, z, elec_pos, current, rho=300.0):
+def point_source_potential(
+    x: float, y: float, z: float,
+    elec_pos: tuple[float, float, float],
+    current: float, rho: float = 300.0,
+) -> float:
     """
     Noktasal akım kaynağının oluşturduğu ekstrasellüler potansiyeli hesaplar.
 
@@ -50,9 +56,11 @@ def point_source_potential(x, y, z, elec_pos, current, rho=300.0):
     return (rho * current) / (4 * np.pi * r_cm)
 
 
-def biphasic_waveform(freq_hz, amp, duration_ms, dt=0.005,
-                      pulse_width_ms=0.1, waveform="rectangular",
-                      interphase_gap_ms=0.05):
+def biphasic_waveform(
+    freq_hz: float, amp: float, duration_ms: float, dt: float = 0.005,
+    pulse_width_ms: float = 0.1, waveform: str = "rectangular",
+    interphase_gap_ms: float = 0.05,
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Biphasic (çift fazlı) veya sinüsoidal (KHFAC) uyarım dalga formu üretir.
 
@@ -110,7 +118,11 @@ def biphasic_waveform(freq_hz, amp, duration_ms, dt=0.005,
     return t_vec, i_vec
 
 
-def run_stimulation_loop(sections, coords, elec_pos, i_vec, dt, v_init=-65.0):
+def run_stimulation_loop(
+    sections: list[Any], coords: list[tuple[float, float, float]],
+    elec_pos: tuple[float, float, float], i_vec: np.ndarray, dt: float,
+    v_init: float = -65.0,
+) -> None:
     """
     Bir akım dalga formunu (i_vec) NEURON aksonuna adım adım uygular.
 
@@ -148,7 +160,10 @@ def run_stimulation_loop(sections, coords, elec_pos, i_vec, dt, v_init=-65.0):
         h.fadvance()
 
 
-def apply_extracellular_field(sections, coords, elec_pos, current):
+def apply_extracellular_field(
+    sections: list[Any], coords: list[tuple[float, float, float]],
+    elec_pos: tuple[float, float, float], current: float,
+) -> None:
     """
     Hesaplanan ekstrasellüler potansiyeli NEURON aksonu üzerindeki tüm
     segmentlere uygular.
