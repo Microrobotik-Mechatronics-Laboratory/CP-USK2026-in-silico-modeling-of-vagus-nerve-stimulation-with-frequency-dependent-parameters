@@ -22,21 +22,14 @@ from brian2 import (
     defaultclock,
 )
 
+from src.network.brain_regions import LIF_EQS
+
 # ---------------------------------------------------------------------------
 # NTS nöron modeli — LIF denklemleri
 # ---------------------------------------------------------------------------
-# Leaky Integrate-and-Fire:
-#   dv/dt = (v_rest - v)/tau_m + g_syn*(E_syn - v)/(gL*tau_m)
-#   Her değişken (v_rest, E_syn, gL, tau_m, tau_syn) per-neuron parametredir.
-NTS_EQS = """
-dv/dt = (v_rest - v + g_syn*(E_syn - v)/gL) / tau_m : volt (unless refractory)
-dg_syn/dt = -g_syn / tau_syn : siemens
-v_rest : volt
-E_syn  : volt
-gL     : siemens
-tau_m  : second
-tau_syn: second
-"""
+# NTS de bir LIF popülasyonudur; denklemler brain_regions.LIF_EQS ile ortak.
+# Ayrı isimle (NTS_EQS) dışa aktarılır — geriye dönük uyumluluk ve okunabilirlik için.
+NTS_EQS = LIF_EQS
 
 # ---------------------------------------------------------------------------
 # Tsodyks-Markram (TM) sinaptik plastisiti modeli
