@@ -15,7 +15,7 @@ Kaynak: nerve_frequency_study_colab.ipynb — çeşitli hücrelerden toplanan sa
 # ---------------------------------------------------------------------------
 # (x, y, z) koordinatları mikrometre cinsinden.
 # Aksondan 500 µm uzakta, z ekseni boyunca 5 mm konumda.
-ELECTRODE_POS = (500.0, 0.0, 5000.0)  # µm
+ELECTRODE_POS: tuple[float, float, float] = (500.0, 0.0, 5000.0)  # µm
 
 # ---------------------------------------------------------------------------
 # MRG akson parametreleri
@@ -23,7 +23,7 @@ ELECTRODE_POS = (500.0, 0.0, 5000.0)  # µm
 # Anahtar: fiber çapı (µm)
 # Değer: (node_diam, node_length, internode_length, n_myelin_lamellae)
 # ---------------------------------------------------------------------------
-MRG_PARAMS = {
+MRG_PARAMS: dict[float, tuple[float, float, int, int]] = {
     5.7:  (1.9, 1.0,  500, 80),   # Aδ — ağrı, sıcaklık
     8.7:  (2.8, 1.0,  750, 110),  # Aβ — dokunma
     12.8: (3.4, 1.0, 1150, 130),  # Aα — motor, propriosepsiyon
@@ -33,20 +33,20 @@ MRG_PARAMS = {
 # ---------------------------------------------------------------------------
 # Varsayılan simülasyon parametreleri
 # ---------------------------------------------------------------------------
-DEFAULT_AMP           = 3.0    # Uyarım genliği (µA)
-DEFAULT_N_FIBERS      = 20     # Fiber demeti büyüklüğü
-DEFAULT_FIBER_DIAM    = 8.7    # MRG akson çapı (µm)
-DEFAULT_N_NODES       = 15     # MRG düğüm sayısı
-DEFAULT_ELEC_Z        = 3000.0 # Elektrot z konumu run_level1 için (µm)
-DEFAULT_PULSE_WIDTH   = 0.1    # Puls genişliği (ms)
-DEFAULT_CELSIUS       = 37.0   # Fizyolojik hedef sıcaklık (°C) — ŞUANDA KULLANILMIYOR.
+DEFAULT_AMP: float           = 3.0    # Uyarım genliği (µA)
+DEFAULT_N_FIBERS: int        = 20     # Fiber demeti büyüklüğü
+DEFAULT_FIBER_DIAM: float    = 8.7    # MRG akson çapı (µm)
+DEFAULT_N_NODES: int         = 15     # MRG düğüm sayısı
+DEFAULT_ELEC_Z: float        = 3000.0 # Elektrot z konumu run_level1 için (µm)
+DEFAULT_PULSE_WIDTH: float   = 0.1    # Puls genişliği (ms)
+DEFAULT_CELSIUS: float       = 37.0   # Fizyolojik hedef sıcaklık (°C) — ŞUANDA KULLANILMIYOR.
                                 # AXNODE.mod parametreleri NEURON varsayılanı (6.3°C)
                                 # için kalibre edilmiş; 37°C'de eşik ~50 µA oluyor
                                 # (fizyolojik ~1-2 µA olmalı). Faz 4'te .mod
                                 # parametrelerini 37°C için yeniden fit etmek gerekiyor.
-DEFAULT_DT            = 0.005  # Zaman adımı (ms)
-DEFAULT_N_CYCLES      = 8      # Adaptif süre hesabı için minimum döngü sayısı
-DEFAULT_MIN_MS        = 200    # Minimum simülasyon süresi (ms)
+DEFAULT_DT: float            = 0.005  # Zaman adımı (ms)
+DEFAULT_N_CYCLES: int        = 8      # Adaptif süre hesabı için minimum döngü sayısı
+DEFAULT_MIN_MS: float        = 200    # Minimum simülasyon süresi (ms)
                                 # ADR (2026-07-11): Bu değer 200 ms olarak bırakıldı.
                                 # Faz 3 sweep testinde NAc hiç aktive olmadı (tüm frekanslarda 0.00).
                                 # Kök neden: NAc TM fasilitasyon zaman sabiti tau_f=500 ms;
@@ -54,45 +54,45 @@ DEFAULT_MIN_MS        = 200    # Minimum simülasyon süresi (ms)
                                 # → fasilitasyon birikmeden simülasyon biter → NAc = 0.
                                 # Karar: Değeri 1000 ms'e çıkarmak NAc'ı aktive edebilir
                                 # ama yüksek frekanslarda simülasyon ~5x yavaşlar.
-DEFAULT_MAX_MS        = 1000   # Maksimum simülasyon süresi (ms)
+DEFAULT_MAX_MS: float        = 1000   # Maksimum simülasyon süresi (ms)
 
 # ---------------------------------------------------------------------------
 # LIF / Brian2 ortak biyofizik sabitleri (nts_relay.py + brain_regions.py)
 # ---------------------------------------------------------------------------
-DEFAULT_V_INIT_MV = -65.0  # Başlangıç/dinlenme membran potansiyeli (mV) — NEURON tarafı
+DEFAULT_V_INIT_MV: float = -65.0  # Başlangıç/dinlenme membran potansiyeli (mV) — NEURON tarafı
                             # (run_stimulation_loop/h.finitialize). Brian2 popülasyon
                             # dinlenme durumundan (LIF_V_REST_MV) kasıtlı olarak ayrı
                             # tutulur — sayısal değer aynı ama kavramsal alan farklı.
-LIF_THRESHOLD_MV   = -50.0  # Spike eşiği (mV) — NTS + tüm downstream bölgeler ortak
-LIF_RESET_MV       = -65.0  # Reset potansiyeli (mV)
-LIF_V_REST_MV      = -65.0  # Dinlenme potansiyeli (mV)
-LIF_E_SYN_MV       = 0.0    # Sinaptik ters çevirme potansiyeli (mV) — AMPA benzeri eksitasyon
-LIF_GL_NS          = 10.0   # Sızıntı iletkenliği (nS)
-LIF_TAU_SYN_MS     = 5.0    # Sinaptik iletkenlik azalma zaman sabiti (ms)
+LIF_THRESHOLD_MV: float   = -50.0  # Spike eşiği (mV) — NTS + tüm downstream bölgeler ortak
+LIF_RESET_MV: float       = -65.0  # Reset potansiyeli (mV)
+LIF_V_REST_MV: float      = -65.0  # Dinlenme potansiyeli (mV)
+LIF_E_SYN_MV: float       = 0.0    # Sinaptik ters çevirme potansiyeli (mV) — AMPA benzeri eksitasyon
+LIF_GL_NS: float          = 10.0   # Sızıntı iletkenliği (nS)
+LIF_TAU_SYN_MS: float     = 5.0    # Sinaptik iletkenlik azalma zaman sabiti (ms)
 
 # ---------------------------------------------------------------------------
 # Brian2 simülasyon zaman adımı (level23.py)
 # ---------------------------------------------------------------------------
-DEFAULT_BRIAN_DT_MS = 0.1   # defaultclock.dt (ms) — run_levels_2_3 ve run_full_network ortak
+DEFAULT_BRIAN_DT_MS: float = 0.1   # defaultclock.dt (ms) — run_levels_2_3 ve run_full_network ortak
 
 # ---------------------------------------------------------------------------
 # Tarama frekansları
 # ---------------------------------------------------------------------------
 # Aktivasyon bölgesi (düşük frekans) + KHFAC blok bölgesi (yüksek frekans)
-DEFAULT_FREQUENCIES = [1, 5, 10, 20, 50, 100, 200, 500]
+DEFAULT_FREQUENCIES: list[int] = [1, 5, 10, 20, 50, 100, 200, 500]
 
-LOW_FREQ_RANGE  = [1, 2, 5, 10, 20, 50, 100, 200, 500]        # Hz
-HIGH_FREQ_RANGE = [1000, 2000, 5000, 10000, 20000, 50000]      # Hz (KHFAC)
+LOW_FREQ_RANGE: list[int]  = [1, 2, 5, 10, 20, 50, 100, 200, 500]        # Hz
+HIGH_FREQ_RANGE: list[int] = [1000, 2000, 5000, 10000, 20000, 50000]      # Hz (KHFAC)
 
 # ---------------------------------------------------------------------------
 # Analiz eşiği
 # ---------------------------------------------------------------------------
-DEFAULT_ACTIVE_THRESHOLD_HZ = 0.5  # Hz/nöron — bu değerin üstü "aktif" sayılır
+DEFAULT_ACTIVE_THRESHOLD_HZ: float = 0.5  # Hz/nöron — bu değerin üstü "aktif" sayılır
 
 # ---------------------------------------------------------------------------
 # NTS relay parametreleri (Level 2)
 # ---------------------------------------------------------------------------
-NTS_PARAMS = {
+NTS_PARAMS: dict[str, float] = {
     "n_neurons": 30,
     "tau_m_ms": 20.0,
     "refractory_ms": 2.0,
@@ -110,7 +110,7 @@ NTS_PARAMS = {
 
 # NAc — Nucleus Accumbens
 # Güçlü fasilitasyon: düşük frekansta sessiz, yüksek frekansta aktif
-NAC_PATHWAY_PARAMS = {
+NAC_PATHWAY_PARAMS: dict[str, float] = {
     "n_neurons": 100,
     "tau_m_ms": 30.0,
     "refractory_ms": 3.0,
@@ -128,7 +128,7 @@ NAC_PATHWAY_PARAMS = {
 
 # Insula — İnsüla Korteksi
 # Hafif depresyon: düşük frekanstan itibaren yanıt — direkt röle gibi
-INSULA_PATHWAY_PARAMS = {
+INSULA_PATHWAY_PARAMS: dict[str, float] = {
     "n_neurons": 100,
     "tau_m_ms": 20.0,
     "refractory_ms": 3.0,
@@ -142,7 +142,7 @@ INSULA_PATHWAY_PARAMS = {
 
 # CA3 — Cornu Ammonis 3 (Hipokampüs)
 # Orta fasilitasyon + rekürrent kolateraller
-CA3_PATHWAY_PARAMS = {
+CA3_PATHWAY_PARAMS: dict[str, float] = {
     "n_neurons": 100,
     "tau_m_ms": 20.0,
     "refractory_ms": 3.0,
@@ -160,7 +160,7 @@ CA3_PATHWAY_PARAMS = {
 # ---------------------------------------------------------------------------
 # Görselleştirme renkleri (bölgeye göre)
 # ---------------------------------------------------------------------------
-REGION_COLORS = {
+REGION_COLORS: dict[str, str] = {
     "NTS":   "#888888",
     "NAc":   "#d95f02",
     "Insula": "#1b9e77",
