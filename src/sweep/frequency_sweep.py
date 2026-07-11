@@ -14,7 +14,6 @@ Kaynak: nerve_frequency_study_colab.ipynb — Cell 16
 """
 
 import numpy as np
-from neuron import h
 
 from config.defaults import (
     ELECTRODE_POS,
@@ -23,13 +22,34 @@ from config.defaults import (
     DEFAULT_PULSE_WIDTH,
     DEFAULT_DT,
 )
-from src.stim.extracellular_field import apply_extracellular_field, biphasic_waveform
+from src.stim.extracellular_field import biphasic_waveform, run_stimulation_loop
 from src.analysis.threshold_finder import find_threshold, verify_bracket
 
 
 # ---------------------------------------------------------------------------
 # İç yardımcı fonksiyonlar
 # ---------------------------------------------------------------------------
+
+def _record_spikes(fiber):
+    """
+    Fiber tipine uygun spike kaydı metodunu çağırır.
+
+    MRGAxon.record_last_node_spikes() veya CFiber.record_distal_spikes() —
+    ikisi de aynı imzayı (h.Vector döner) paylaşır ama farklı isimlendirilmiş.
+
+    Parametreler
+    ------------
+    fiber : MRGAxon veya CFiber
+
+    Döndürür
+    --------
+    h.Vector
+        Spike zamanları.
+    """
+    if hasattr(fiber, "record_last_node_spikes"):
+        return fiber.record_last_node_spikes()
+    return fiber.record_distal_spikes()
+
 
 def _run_activation_trial(fiber, amp, freq_hz, duration_ms=50, dt=DEFAULT_DT):
     """
@@ -58,22 +78,14 @@ def _run_activation_trial(fiber, amp, freq_hz, duration_ms=50, dt=DEFAULT_DT):
     """
     coords = fiber.section_coords()
     sections = fiber.all_sections()
-    spikes = (
-        fiber.record_last_node_spikes()
-        if hasattr(fiber, "record_last_node_spikes")
-        else fiber.record_distal_spikes()
-    )
+    spikes = _record_spikes(fiber)
 
     t_vec, i_vec = biphasic_waveform(
         freq_hz, amp, duration_ms, dt,
         pulse_width_ms=DEFAULT_PULSE_WIDTH,
         waveform="rectangular",
     )
-    h.dt = dt
-    h.finitialize(-65)  # Tüm değişkenleri başlangıç değerlerine ayarla: V=-65 mV
-    for i_t in i_vec:
-        apply_extracellular_field(sections, coords, ELECTRODE_POS, i_t)
-        h.fadvance()  # Tek dt zaman adımı: iyon kanalları + kablo denklemi
+    run_stimulation_loop(sections, coords, ELECTRODE_POS, i_vec, dt)
 
     return spikes.size() > 0
 
@@ -113,11 +125,7 @@ def _run_block_trial(fiber, amp, freq_hz, block_duration_ms=200, dt=DEFAULT_DT,
     """
     coords = fiber.section_coords()
     sections = fiber.all_sections()
-    spikes = (
-        fiber.record_last_node_spikes()
-        if hasattr(fiber, "record_last_node_spikes")
-        else fiber.record_distal_spikes()
-    )
+    spikes = _record_spikes(fiber)
 
     t_vec, i_khfac = biphasic_waveform(
         freq_hz, amp, block_duration_ms, dt, waveform="sinusoidal"
@@ -132,11 +140,7 @@ def _run_block_trial(fiber, amp, freq_hz, block_duration_ms=200, dt=DEFAULT_DT,
     i_combined = i_khfac.copy()
     i_combined[test_mask] += i_test[test_mask]
 
-    h.dt = dt
-    h.finitialize(-65)
-    for i_t in i_combined:
-        apply_extracellular_field(sections, coords, ELECTRODE_POS, i_t)
-        h.fadvance()
+    run_stimulation_loop(sections, coords, ELECTRODE_POS, i_combined, dt)
 
     # Blok başarılıysa test pulse sonrasında spike yok
     return spikes.size() == 0
