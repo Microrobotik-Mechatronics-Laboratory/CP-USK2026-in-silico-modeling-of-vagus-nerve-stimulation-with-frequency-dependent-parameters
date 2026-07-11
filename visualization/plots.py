@@ -18,6 +18,22 @@ import pandas as pd
 from config.defaults import REGION_COLORS, DEFAULT_ACTIVE_THRESHOLD_HZ
 
 
+def _save_or_show(fig, save_path):
+    """
+    Grafiği dosyaya kaydeder (save_path verilmişse) veya ekranda gösterir.
+
+    Parametreler
+    ------------
+    fig : matplotlib.figure.Figure
+    save_path : str veya None
+        Verilirse dpi=150, bbox_inches="tight" ile kaydedilir.
+    """
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    else:
+        plt.show()
+
+
 def plot_region_curves(df, regions=None, colors=None, save_path=None):
     """
     Her bölge için ateşleme hızı vs. stimülasyon frekansı eğrilerini çizer.
@@ -64,10 +80,7 @@ def plot_region_curves(df, regions=None, colors=None, save_path=None):
     ax.grid(True, which="both", alpha=0.3)
     plt.tight_layout()
 
-    if save_path:
-        fig.savefig(save_path, dpi=150, bbox_inches="tight")
-    else:
-        plt.show()
+    _save_or_show(fig, save_path)
 
     return fig, ax
 
@@ -117,10 +130,7 @@ def plot_heatmap(df, regions=None, save_path=None):
     fig.colorbar(im, ax=ax, label="Hz/nöron")
     plt.tight_layout()
 
-    if save_path:
-        fig.savefig(save_path, dpi=150, bbox_inches="tight")
-    else:
-        plt.show()
+    _save_or_show(fig, save_path)
 
     return fig, ax
 
@@ -169,10 +179,7 @@ def plot_grouped_bar(df, regions=None, colors=None, save_path=None):
     ax.grid(True, axis="y", alpha=0.3)
     plt.tight_layout()
 
-    if save_path:
-        fig.savefig(save_path, dpi=150, bbox_inches="tight")
-    else:
-        plt.show()
+    _save_or_show(fig, save_path)
 
     return fig, ax
 
