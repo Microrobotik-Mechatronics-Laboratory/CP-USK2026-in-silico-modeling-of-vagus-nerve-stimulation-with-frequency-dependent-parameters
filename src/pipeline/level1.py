@@ -20,9 +20,11 @@ from src.models.mrg_axon import MRGAxon
 from src.stim.extracellular_field import biphasic_waveform, run_stimulation_loop
 
 
-def run_level1(freq_hz=20, amp=1.0, duration_ms=200, dt=DEFAULT_DT,
-               fiber_diam=DEFAULT_FIBER_DIAM, n_nodes=DEFAULT_N_NODES,
-               elec_pos=(500.0, 0.0, 3000.0)):
+def run_level1(
+    freq_hz: float = 20, amp: float = 1.0, duration_ms: float = 200, dt: float = DEFAULT_DT,
+    fiber_diam: float = DEFAULT_FIBER_DIAM, n_nodes: int = DEFAULT_N_NODES,
+    elec_pos: tuple[float, float, float] = (500.0, 0.0, 3000.0),
+) -> list[float]:
     """
     Level 1: NEURON MRG aksonunu uyarır ve distal spike zamanlarını döndürür.
 

@@ -16,12 +16,16 @@ from config.defaults import (
     DEFAULT_MIN_MS,
     DEFAULT_MAX_MS,
 )
+from typing import Any
+
 from src.pipeline.level1 import run_level1
 from src.pipeline.level23 import run_full_network
 
 
-def cycles_to_duration_ms(freq_hz, n_cycles=DEFAULT_N_CYCLES,
-                           min_ms=DEFAULT_MIN_MS, max_ms=DEFAULT_MAX_MS):
+def cycles_to_duration_ms(
+    freq_hz: float, n_cycles: int = DEFAULT_N_CYCLES,
+    min_ms: float = DEFAULT_MIN_MS, max_ms: float = DEFAULT_MAX_MS,
+) -> float:
     """
     Frekansa göre adaptif simülasyon süresi hesaplar.
 
@@ -57,8 +61,10 @@ def cycles_to_duration_ms(freq_hz, n_cycles=DEFAULT_N_CYCLES,
     return float(min(max_ms, max(min_ms, n_cycles * 1000.0 / freq_hz)))
 
 
-def run_one_frequency(freq_hz, amp=DEFAULT_AMP, n_fibers=DEFAULT_N_FIBERS,
-                      verbose=True):
+def run_one_frequency(
+    freq_hz: float, amp: float = DEFAULT_AMP, n_fibers: int = DEFAULT_N_FIBERS,
+    verbose: bool = True,
+) -> dict[str, Any]:
     """
     Tek frekans için tam Level 1 → Level 2-3 pipeline çalıştırır.
 
@@ -126,8 +132,10 @@ def run_one_frequency(freq_hz, amp=DEFAULT_AMP, n_fibers=DEFAULT_N_FIBERS,
     return rates
 
 
-def run_frequency_sweep(frequencies, amp=DEFAULT_AMP, n_fibers=DEFAULT_N_FIBERS,
-                        verbose=True):
+def run_frequency_sweep(
+    frequencies: list[float], amp: float = DEFAULT_AMP, n_fibers: int = DEFAULT_N_FIBERS,
+    verbose: bool = True,
+) -> list[dict[str, Any]]:
     """
     Verilen frekans listesi için tam sweep çalıştırır.
 

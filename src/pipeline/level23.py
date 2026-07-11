@@ -20,6 +20,7 @@ from brian2 import (
     defaultclock,
     start_scope,
 )
+from typing import Sequence
 
 from src.network.bridge import bundle_from_single_fiber
 from src.network.nts_relay import build_nts_relay, make_tm_conn
@@ -33,7 +34,9 @@ from config.defaults import (
 )
 
 
-def _connect_region_simple(source, target, p=0.25, w=5.0):
+def _connect_region_simple(
+    source: NeuronGroup, target: NeuronGroup, p: float = 0.25, w: float = 5.0,
+) -> Synapses:
     """
     İki popülasyon arasında basit AMPA benzeri sinaps kurar (TM plastisiti olmadan).
 
@@ -63,7 +66,10 @@ def _connect_region_simple(source, target, p=0.25, w=5.0):
     return syn
 
 
-def run_levels_2_3(spike_times_ms, duration_ms=200, n_nts=30, n_ca3=100):
+def run_levels_2_3(
+    spike_times_ms: Sequence[float], duration_ms: float = 200,
+    n_nts: int = 30, n_ca3: int = 100,
+) -> tuple[SpikeMonitor, SpikeMonitor]:
     """
     Basitleştirilmiş Level 2-3 pipeline: NTS relay → CA3.
 
@@ -116,7 +122,9 @@ def run_levels_2_3(spike_times_ms, duration_ms=200, n_nts=30, n_ca3=100):
     return nts_mon, ca3_mon
 
 
-def run_full_network(spike_times_ms, duration_ms, n_fibers=20):
+def run_full_network(
+    spike_times_ms: Sequence[float], duration_ms: float, n_fibers: int = 20,
+) -> dict[str, SpikeMonitor]:
     """
     Tam Level 2-3 ağı: fiber demeti → NTS → NAc / İnsula / CA3.
 
@@ -159,7 +167,7 @@ def run_full_network(spike_times_ms, duration_ms, n_fibers=20):
     afferent = bundle_from_single_fiber(spike_times_ms, n_fibers=n_fibers)
 
     # NTS röle
-    nts = build_pop(NTS_PARAMS["n_neurons"], tau_m=NTS_PARAMS["tau_m_ms"] * ms,
+    nts = build_pop(int(NTS_PARAMS["n_neurons"]), tau_m=NTS_PARAMS["tau_m_ms"] * ms,
                     refractory=NTS_PARAMS["refractory_ms"] * ms)
     nts_syn = make_tm_conn(
         afferent, nts,
@@ -171,14 +179,14 @@ def run_full_network(spike_times_ms, duration_ms, n_fibers=20):
     )
 
     # Downstream bölgeler
-    nac_pop    = build_pop(NAC_PATHWAY_PARAMS["n_neurons"],
+    nac_pop    = build_pop(int(NAC_PATHWAY_PARAMS["n_neurons"]),
                            tau_m=NAC_PATHWAY_PARAMS["tau_m_ms"] * ms,
                            refractory=NAC_PATHWAY_PARAMS["refractory_ms"] * ms)
-    insula_pop = build_pop(INSULA_PATHWAY_PARAMS["n_neurons"],
+    insula_pop = build_pop(int(INSULA_PATHWAY_PARAMS["n_neurons"]),
                            tau_m=INSULA_PATHWAY_PARAMS["tau_m_ms"] * ms,
                            refractory=INSULA_PATHWAY_PARAMS["refractory_ms"] * ms)
     ca3_pop, ca3_rec = build_ca3_r(
-        n=CA3_PATHWAY_PARAMS["n_neurons"],
+        n=int(CA3_PATHWAY_PARAMS["n_neurons"]),
         recurrent_p=CA3_PATHWAY_PARAMS["recurrent_p"],
         recurrent_w=CA3_PATHWAY_PARAMS["recurrent_w_nS"] * nS,
     )

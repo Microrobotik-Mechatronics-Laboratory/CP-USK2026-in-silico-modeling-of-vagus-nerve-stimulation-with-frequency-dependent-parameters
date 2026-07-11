@@ -13,6 +13,8 @@ Logaritmik dağılım kullanılır çünkü sinir sistemi logaritmik ölçekte �
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 16
 """
 
+from typing import Any, Callable, Optional
+
 import numpy as np
 
 from config.defaults import (
@@ -31,7 +33,7 @@ from src.analysis.threshold_finder import find_threshold, verify_bracket
 # İç yardımcı fonksiyonlar
 # ---------------------------------------------------------------------------
 
-def _record_spikes(fiber):
+def _record_spikes(fiber: Any) -> Any:
     """
     Fiber tipine uygun spike kaydı metodunu çağırır.
 
@@ -52,7 +54,9 @@ def _record_spikes(fiber):
     return fiber.record_distal_spikes()
 
 
-def _run_activation_trial(fiber, amp, freq_hz, duration_ms=50, dt=DEFAULT_DT):
+def _run_activation_trial(
+    fiber: Any, amp: float, freq_hz: float, duration_ms: float = 50, dt: float = DEFAULT_DT,
+) -> bool:
     """
     Tek bir aktivasyon denemesi çalıştırır.
 
@@ -91,8 +95,10 @@ def _run_activation_trial(fiber, amp, freq_hz, duration_ms=50, dt=DEFAULT_DT):
     return spikes.size() > 0
 
 
-def _run_block_trial(fiber, amp, freq_hz, block_duration_ms=200, dt=DEFAULT_DT,
-                     test_pulse_time_ms=50, test_pulse_amp=2.0):
+def _run_block_trial(
+    fiber: Any, amp: float, freq_hz: float, block_duration_ms: float = 200, dt: float = DEFAULT_DT,
+    test_pulse_time_ms: float = 50, test_pulse_amp: float = 2.0,
+) -> bool:
     """
     Tek bir KHFAC blok denemesi çalıştırır.
 
@@ -151,7 +157,7 @@ def _run_block_trial(fiber, amp, freq_hz, block_duration_ms=200, dt=DEFAULT_DT,
 # Genel arayüz
 # ---------------------------------------------------------------------------
 
-def default_frequency_range():
+def default_frequency_range() -> list[float]:
     """
     Varsayılan frekans aralığını döndürür.
 
@@ -165,8 +171,11 @@ def default_frequency_range():
     return sorted(LOW_FREQ_RANGE + HIGH_FREQ_RANGE)
 
 
-def sweep_fiber(fiber_builder, diameter, frequencies_hz=None, mode="activation",
-                amp_low=0.01, amp_high=5.0):
+def sweep_fiber(
+    fiber_builder: Callable[..., Any], diameter: float,
+    frequencies_hz: Optional[list[float]] = None, mode: str = "activation",
+    amp_low: float = 0.01, amp_high: float = 5.0,
+) -> list[dict[str, Any]]:
     """
     Verilen fiber tipi ve çapı için frekans boyunca eşik taraması yapar.
 
