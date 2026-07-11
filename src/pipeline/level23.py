@@ -29,6 +29,7 @@ from config.defaults import (
     NAC_PATHWAY_PARAMS,
     INSULA_PATHWAY_PARAMS,
     CA3_PATHWAY_PARAMS,
+    DEFAULT_BRIAN_DT_MS,
 )
 
 
@@ -109,7 +110,7 @@ def run_levels_2_3(spike_times_ms, duration_ms=200, n_nts=30, n_ca3=100):
     nts_mon = SpikeMonitor(nts)
     ca3_mon = SpikeMonitor(ca3_pop)
 
-    defaultclock.dt = 0.1 * ms
+    defaultclock.dt = DEFAULT_BRIAN_DT_MS * ms
     run(duration_ms * ms)
 
     return nts_mon, ca3_mon
@@ -216,7 +217,7 @@ def run_full_network(spike_times_ms, duration_ms, n_fibers=20):
         "CA3":   SpikeMonitor(ca3_pop),
     }
 
-    defaultclock.dt = 0.1 * ms
+    defaultclock.dt = DEFAULT_BRIAN_DT_MS * ms
     net = Network(
         afferent, nts, nts_syn,
         nac_pop, insula_pop, ca3_pop, ca3_rec,

@@ -21,6 +21,7 @@ from config.defaults import (
     HIGH_FREQ_RANGE,
     DEFAULT_PULSE_WIDTH,
     DEFAULT_DT,
+    DEFAULT_V_INIT_MV,
 )
 from src.stim.extracellular_field import biphasic_waveform, run_stimulation_loop
 from src.analysis.threshold_finder import find_threshold, verify_bracket
@@ -85,7 +86,7 @@ def _run_activation_trial(fiber, amp, freq_hz, duration_ms=50, dt=DEFAULT_DT):
         pulse_width_ms=DEFAULT_PULSE_WIDTH,
         waveform="rectangular",
     )
-    run_stimulation_loop(sections, coords, ELECTRODE_POS, i_vec, dt)
+    run_stimulation_loop(sections, coords, ELECTRODE_POS, i_vec, dt, v_init=DEFAULT_V_INIT_MV)
 
     return spikes.size() > 0
 
@@ -140,7 +141,7 @@ def _run_block_trial(fiber, amp, freq_hz, block_duration_ms=200, dt=DEFAULT_DT,
     i_combined = i_khfac.copy()
     i_combined[test_mask] += i_test[test_mask]
 
-    run_stimulation_loop(sections, coords, ELECTRODE_POS, i_combined, dt)
+    run_stimulation_loop(sections, coords, ELECTRODE_POS, i_combined, dt, v_init=DEFAULT_V_INIT_MV)
 
     # Blok başarılıysa test pulse sonrasında spike yok
     return spikes.size() == 0

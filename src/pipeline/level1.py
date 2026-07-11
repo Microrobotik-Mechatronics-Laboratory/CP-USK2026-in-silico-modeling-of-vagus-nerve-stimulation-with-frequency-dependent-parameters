@@ -14,6 +14,7 @@ from config.defaults import (
     DEFAULT_PULSE_WIDTH,
     DEFAULT_N_NODES,
     DEFAULT_FIBER_DIAM,
+    DEFAULT_V_INIT_MV,
 )
 from src.models.mrg_axon import MRGAxon
 from src.stim.extracellular_field import biphasic_waveform, run_stimulation_loop
@@ -69,6 +70,6 @@ def run_level1(freq_hz=20, amp=1.0, duration_ms=200, dt=DEFAULT_DT,
         waveform="rectangular",
     )
 
-    run_stimulation_loop(sections, coords, elec_pos, i_vec, dt)
+    run_stimulation_loop(sections, coords, elec_pos, i_vec, dt, v_init=DEFAULT_V_INIT_MV)
 
     return list(spikes)
