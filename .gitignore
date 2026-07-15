@@ -48,5 +48,5 @@ results*.csv
 # Loglar
 *.log
 
-# Planlama klasörü (sadece yerel — repoya push edilmez)
-planlama/
+# SDLC klasörü (sadece yerel — repoya push edilmez)
+SDLC/

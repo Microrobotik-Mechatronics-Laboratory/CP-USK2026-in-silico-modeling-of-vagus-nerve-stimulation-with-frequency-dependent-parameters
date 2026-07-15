@@ -34,7 +34,7 @@ from src.models._neuron_mechanisms import ensure_mechanisms_loaded
 # kalibre edilmiş görünüyor. celsius=37°C set edildiğinde Q10 faktörleri
 # (q10_1=3.35, q10_2=5.68) Na inaktivasyonunu aktivasyondan çok daha hızlı
 # kılıyor → eşik ~50 µA'ya çıkıyor (fizyolojik değer ~1-2 µA olmalı).
-# Kaynak: test edildi, bkz. planlama/TEKNIK_NOTLAR.md
+# Kaynak: test edildi, bkz. SDLC/TEKNIK_NOTLAR.md
 ensure_mechanisms_loaded()
 
 h.load_file("stdrun.hoc")

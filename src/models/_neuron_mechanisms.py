@@ -8,7 +8,7 @@ Derlenmiş kütüphane olmadan `hasattr(h, "axnode")` / `hasattr(h, "nahh")`
 her zaman False döner ve modeller sessizce HH fallback'e düşer — bu modül
 o sessiz düşüşü önlemek için mekanizmaları açıkça yükler. Kütüphane
 bulunamazsa `RuntimeWarning` verir (fd5abff'te düzeltilen sessiz-fallback
-hatasının tekrarını önlemek için — bkz. planlama/TEKNIK_NOTLAR.md).
+hatasının tekrarını önlemek için — bkz. SDLC/TEKNIK_NOTLAR.md).
 """
 
 import glob

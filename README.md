@@ -246,8 +246,8 @@ export etmiyor; `src/network/bridge.py::neuron_spikes_to_brian_group()` ve
 `merge_fiber_populations()` hiçbir pipeline'da çağrılmıyor (kullanılmayan
 public API).
 
-Tam detay ve önerilen düzeltmeler: `planlama/KOD_INCELEMESI_2026-07-15.md`
-(yerel planlama klasörü — repoya push edilmez).
+Tam detay ve önerilen düzeltmeler: `SDLC/KOD_INCELEMESI_2026-07-15.md`
+(yerel SDLC klasörü — repoya push edilmez).
 
 ---
 
