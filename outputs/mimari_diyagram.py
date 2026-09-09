@@ -20,7 +20,10 @@ outputs/matris.csv sonuçlarından üretilir. Sayısal değerler
 config/defaults.py'den okunur.
 
 Kullanım:
-    .venv/bin/python outputs/mimari_diyagram.py [matris.csv] [cikti_dizini]
+    .venv/bin/python outputs/mimari_diyagram.py [matris.csv] [cikti_dizini] [oran]
+
+`oran` 2:1 (varsayılan, yatay) veya 1:1 (kare) olabilir. Çıktı en-boy oranı
+tam olarak korunur; savefig'te bbox_inches="tight" kullanılmaz.
 """
 
 import os
@@ -367,33 +370,61 @@ def panel_g(ax):
             fontsize=6.4, color=GRAY, ha="left", va="center")
 
 
+def build_layout(fig, aspect):
+    """Orana göre panel yerleşimi kurar ve eksenleri sözlük olarak döndürür."""
+    if aspect == "1:1":
+        # Kare: dar ve uzun; 5 satır x 2 sütun
+        gs = GridSpec(5, 2, figure=fig,
+                      height_ratios=[0.86, 0.86, 1.02, 0.86, 0.66],
+                      hspace=0.70, wspace=0.24,
+                      left=0.070, right=0.985, top=0.930, bottom=0.032)
+        return {
+            "a": fig.add_subplot(gs[0, :]), "b": fig.add_subplot(gs[1, 0]),
+            "c": fig.add_subplot(gs[1, 1]), "d": fig.add_subplot(gs[2, :]),
+            "e": fig.add_subplot(gs[3, 0]), "f": fig.add_subplot(gs[3, 1]),
+            "g": fig.add_subplot(gs[4, :]),
+        }
+
+    # 2:1 yatay: geniş ve alçak; şematik paneller (A, D) ikişer sütun kaplar
+    gs = GridSpec(3, 4, figure=fig, height_ratios=[1.0, 1.0, 0.52],
+                  hspace=0.62, wspace=0.30,
+                  left=0.050, right=0.990, top=0.905, bottom=0.045)
+    return {
+        "a": fig.add_subplot(gs[0, 0:2]), "b": fig.add_subplot(gs[0, 2]),
+        "c": fig.add_subplot(gs[0, 3]),   "d": fig.add_subplot(gs[1, 0:2]),
+        "e": fig.add_subplot(gs[1, 2]),   "f": fig.add_subplot(gs[1, 3]),
+        "g": fig.add_subplot(gs[2, :]),
+    }
+
+
 def main() -> None:
     csv_path = sys.argv[1] if len(sys.argv) > 1 else "outputs/matris.csv"
     out_dir = sys.argv[2] if len(sys.argv) > 2 else "outputs/sekiller"
+    aspect = sys.argv[3] if len(sys.argv) > 3 else "2:1"
+    if aspect not in ("2:1", "1:1"):
+        raise SystemExit(f"Geçersiz oran: {aspect} (2:1 veya 1:1)")
     os.makedirs(out_dir, exist_ok=True)
     df = pd.read_csv(csv_path) if os.path.exists(csv_path) else None
 
-    fig = plt.figure(figsize=(10.0, 10.0))   # 1:1 kare
-    gs = GridSpec(5, 2, figure=fig, height_ratios=[0.86, 0.86, 1.02, 0.86, 0.66],
-                  hspace=0.70, wspace=0.24,
-                  left=0.070, right=0.985, top=0.930, bottom=0.032)
+    size = (10.0, 10.0) if aspect == "1:1" else (14.0, 7.0)
+    fig = plt.figure(figsize=size)
+    ax = build_layout(fig, aspect)
 
-    panel_a(fig.add_subplot(gs[0, :]))
-    panel_b(fig.add_subplot(gs[1, 0]))
-    panel_c(fig.add_subplot(gs[1, 1]))
-    panel_d(fig.add_subplot(gs[2, :]))
-    panel_e(fig.add_subplot(gs[3, 0]))
-    panel_f(fig.add_subplot(gs[3, 1]), df)
-    panel_g(fig.add_subplot(gs[4, :]))
+    panel_a(ax["a"]); panel_b(ax["b"]); panel_c(ax["c"]); panel_d(ax["d"])
+    panel_e(ax["e"]); panel_f(ax["f"], df); panel_g(ax["g"])
 
-    fig.text(0.070, 0.980,
+    x0 = 0.070 if aspect == "1:1" else 0.050
+    y0 = 0.980 if aspect == "1:1" else 0.968
+    fig.text(x0, y0,
              "Kapsam: 2 dalga şekli × 3 genlik (1–3 mA) × 5 frekans "
              f"(1 Hz–10 kHz) = 30 koşul × {DEFAULT_N_REPEATS} tekrar   ·   "
              f"MRG {DEFAULT_FIBER_DIAM} µm, {DEFAULT_N_NODES} düğüm, "
              f"dt {DEFAULT_DT} ms",
-             fontsize=7.0, color=GRAY, ha="left", va="top")
+             fontsize=7.6, color=GRAY, ha="left", va="top")
 
-    path = os.path.join(out_dir, "sekil0_mimari.png")
+    suffix = "" if aspect == "2:1" else "_kare"
+    path = os.path.join(out_dir, f"sekil0_mimari{suffix}.png")
+    # bbox_inches="tight" kırpma yaptığı için en-boy oranını bozar; kullanılmaz.
     fig.savefig(path, dpi=DPI, facecolor="white")
     plt.close(fig)
     print("Yazıldı:", path)
