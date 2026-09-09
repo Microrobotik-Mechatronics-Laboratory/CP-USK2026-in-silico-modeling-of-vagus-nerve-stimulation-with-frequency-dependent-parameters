@@ -89,10 +89,13 @@ def biphasic_waveform(
     pulse_width_ms : float, optional
         Her fazın süresi (ms). Varsayılan 0.1 ms = 100 µs.
     waveform : str, optional
-        "rectangular" (varsayılan) veya "sinusoidal" (KHFAC blok deneyleri için).
+        "rectangular" (varsayılan): yük dengeli bifazik kare dalga.
+        "dc": monofazik ("DC") puls treni — negatif dengeleyici faz yok.
+        "sinusoidal": sürekli sinüs dalgası (KHFAC blok deneyleri için).
     interphase_gap_ms : float, optional
         İki faz arasındaki boşluk (ms). Varsayılan 0.05 ms.
         Birinci fazın etkisinin tam oluşması için bekleme süresi.
+        "dc" dalga formunda kullanılmaz.
 
     Döndürür
     --------
@@ -114,17 +117,29 @@ def biphasic_waveform(
         # KHFAC için sürekli sinüsoidal dalga
         i_vec = amp * np.sin(2 * np.pi * freq_hz * t_vec * 1e-3)
     else:
-        # Dikdörtgen biphasic puls treni
         period_ms = 1000.0 / freq_hz  # ms
+
+        # Yüksek frekansta (>= ~2.5 kHz) varsayılan 0.1 ms puls periyoda
+        # sığmaz ve ardışık pulslar birbirinin üzerine yazılır. Puls genişliği
+        # ve interphase gap periyoda göre sınırlanır: dalga formu her zaman
+        # tek bir periyot içinde tamamlanır.
+        pw = min(pulse_width_ms, period_ms / 4.0)
+        gap = min(interphase_gap_ms, period_ms / 8.0)
+
         for t_start in np.arange(0, duration_ms, period_ms):
-            # Faz 1: pozitif puls
-            mask1 = (t_vec >= t_start) & (t_vec < t_start + pulse_width_ms)
+            # Faz 1: pozitif puls (her iki dalga formunda da var)
+            mask1 = (t_vec >= t_start) & (t_vec < t_start + pw)
             i_vec[mask1] = amp
-            # Interphase gap: sıfır akım
-            gap_start = t_start + pulse_width_ms
-            # Faz 2: negatif puls (yükü dengeler)
-            neg_start = gap_start + interphase_gap_ms
-            mask2 = (t_vec >= neg_start) & (t_vec < neg_start + pulse_width_ms)
+
+            if waveform == "dc":
+                # Monofazik ("DC") puls: yük dengeleyici negatif faz yok.
+                # Net yük sıfırdan farklıdır; kronik kullanımda doku hasarı
+                # riski taşır, burada karşılaştırma amacıyla modellenir.
+                continue
+
+            # Faz 2: negatif puls (yükü dengeler) — bifazik "rectangular"
+            neg_start = t_start + pw + gap
+            mask2 = (t_vec >= neg_start) & (t_vec < neg_start + pw)
             i_vec[mask2] = -amp
 
     return t_vec, i_vec

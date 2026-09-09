@@ -74,3 +74,31 @@ def test_biphasic_waveform_sinusoidal_mode():
     )
     assert np.max(i_vec) <= 1.0 + 1e-9
     assert np.min(i_vec) >= -1.0 - 1e-9
+
+
+def test_biphasic_waveform_dc_is_monophasic():
+    # DC: yalnızca pozitif faz olmalı, negatif dengeleyici faz olmamalı
+    _, i_vec = biphasic_waveform(freq_hz=10, amp=2.0, duration_ms=100, dt=0.001,
+                                 waveform="dc")
+    assert np.max(i_vec) == pytest.approx(2.0)
+    assert np.min(i_vec) == pytest.approx(0.0)
+    assert np.sum(i_vec) > 0  # net yük sıfırdan farklı
+
+
+def test_biphasic_waveform_dc_pulse_count():
+    # 100 Hz / 100 ms -> 10 puls (ilki t=0'da basladigi icin kenar degil,
+    # bitisik pozitif blok sayilarak dogrulanir)
+    _, i_vec = biphasic_waveform(freq_hz=100, amp=1.0, duration_ms=100, dt=0.001,
+                                 pulse_width_ms=0.1, waveform="dc")
+    active = (i_vec > 0).astype(int)
+    n_pulses = int(active[0] + np.sum(np.diff(active) > 0))
+    assert n_pulses == 10
+
+
+def test_biphasic_waveform_high_freq_pulse_fits_in_period():
+    # 10 kHz -> periyot 0.1 ms; varsayilan 0.1 ms puls periyoda sigmaz,
+    # otomatik daraltilmali ve dalga formu her periyotta sifira donmeli.
+    _, i_vec = biphasic_waveform(freq_hz=10000, amp=1.0, duration_ms=10, dt=0.001,
+                                 pulse_width_ms=0.1, waveform="rectangular")
+    assert np.any(i_vec == 0.0)          # sabit akimda kilitlenmemis
+    assert np.min(i_vec) < 0             # negatif faz hala uygulanabiliyor
