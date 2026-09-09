@@ -15,6 +15,10 @@ from typing import Any
 
 import numpy as np
 
+# rho [Ω·cm] * I [µA] / r [cm] çarpımı Ω·µA = 1e-6 V = 1e-3 mV verir.
+# NEURON'un e_extracellular alanı mV beklediği için bu dönüşüm zorunludur.
+_UV_TO_MV: float = 1e-3
+
 
 def point_source_potential(
     x: float, y: float, z: float,
@@ -49,11 +53,19 @@ def point_source_potential(
     - McNeal (1976): Ekstrasellüler stimülasyon modellemesinin öncüsü.
     - Rattay (1986): 'Activating function' kavramı — e_extracellular'ın ikinci
       uzaysal türevi sinirin neresinin uyarılacağını belirler.
+
+    Birim zinciri (kritik)
+    ----------------------
+    rho [Ω·cm] * current [µA] / r [cm]  →  Ω·µA = 1e-6 V = 1e-3 mV
+    Yani ham bölme mikrovolt üretir. NEURON'un `e_extracellular` alanı
+    **milivolt** beklediği için sonuç `_UV_TO_MV` ile ölçeklenir. Bu çarpan
+    olmadan aksona 1000 kat büyük bir alan uygulanır (3 µA fiilen 3 mA gibi
+    davranır) ve eşikler fizyolojik aralığın çok altında görünür.
     """
     ex, ey, ez = elec_pos
     r = np.sqrt((x - ex) ** 2 + (y - ey) ** 2 + (z - ez) ** 2)  # µm
     r_cm = np.maximum(r * 1e-4, 1e-6)  # µm → cm, singularite koruması
-    return (rho * current) / (4 * np.pi * r_cm)
+    return _UV_TO_MV * (rho * current) / (4 * np.pi * r_cm)
 
 
 def biphasic_waveform(

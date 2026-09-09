@@ -16,9 +16,17 @@ from src.stim.extracellular_field import point_source_potential, biphasic_wavefo
 def test_point_source_potential_known_value():
     # V = rho*I / (4*pi*r); r=1cm, rho=300 ohm*cm, I=1 uA
     # elektrot orijinde, ölçüm noktası (10000, 0, 0) um = 1 cm
+    # Birim: Ω·µA = 1e-6 V = 1e-3 mV -> sonuç mV cinsinden dönmelidir.
     v = point_source_potential(10000.0, 0.0, 0.0, elec_pos=(0.0, 0.0, 0.0), current=1.0, rho=300.0)
-    expected = (300.0 * 1.0) / (4 * np.pi * 1.0)
+    expected = 1e-3 * (300.0 * 1.0) / (4 * np.pi * 1.0)  # mV
     assert v == pytest.approx(expected, rel=1e-9)
+
+
+def test_point_source_potential_returns_millivolts():
+    # Regresyon: 1000x birim hatası (µV'yi mV sanmak) tekrar girmesin.
+    # 3 µA, 500 µm mesafe -> ~1.43 mV olmalı, 1432 mV değil.
+    v = point_source_potential(0.0, 0.0, 3000.0, elec_pos=(500.0, 0.0, 3000.0), current=3.0)
+    assert 1.0 < v < 2.0
 
 
 def test_point_source_potential_singularity_guard():
