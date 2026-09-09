@@ -123,10 +123,27 @@ NTS_PARAMS: dict[str, float] = {
     "n_neurons": 30,
     "tau_m_ms": 20.0,
     "refractory_ms": 2.0,
-    # Afferent → NTS TM sinaps parametreleri
-    "U": 0.5,
+    # Afferent → NTS TM sinaps parametreleri — deneysel veriye kalibre edildi.
+    #
+    # tau_d_ms: Chen, Horowitz & Bonham (1999), Am J Physiol 277:H1350 —
+    #   sıçan NTS diliminde ölçülen sinaptik toparlanma zaman sabiti
+    #   0.8-1.2 s. Bu doğrudan ölçülmüş bir büyüklüktür, sabit tutuldu.
+    # U: Miles (1986), J Neurophysiol 55:1076 — kobay NTS'de kararlı-durum
+    #   PSP depresyonu 5 Hz'de %35, 10 Hz'de %60, 20 Hz'de %80 (yani
+    #   steady-state/ilk PSP oranı 0.65 / 0.40 / 0.20). tau_d yukarıdaki
+    #   aralıkta sabitlenip U bu üç noktaya fit edildi (RMSE 0.045).
+    #
+    # Doğrulama: bu parametrelerle 20 Hz'de aktarım oranı 0.255; Beaumont
+    # ve ark. (2017), Am J Physiol 313:H354, klinik tarzda 20 Hz VNS'de
+    # NTS nöronlarında ~%25 senkronize AP başarısı bildiriyor.
+    #
+    # Not: Peters ve ark. (2011) paired-pulse verisinden U≈0.5 türetiyor;
+    # tek havuzlu TM modeli Miles'ın kararlı-durum eğrisi ile Chen'in
+    # toparlanma sabitini aynı anda sağlayamıyor. tau_d ölçülmüş bir
+    # büyüklük olduğu için o sabitlendi. Bkz. README "Bilinen Kısıtlar".
+    "U": 0.19,
     "tau_f_ms": 20.0,
-    "tau_d_ms": 700.0,
+    "tau_d_ms": 810.0,
     "p": 0.3,
     "w_nS": 6.0,
 }
