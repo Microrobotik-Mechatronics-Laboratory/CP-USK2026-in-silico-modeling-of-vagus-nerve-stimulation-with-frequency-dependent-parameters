@@ -40,7 +40,9 @@ __brian_objects/
 *.ipynb_checkpoints
 
 # Çıktılar
-outputs/
+# outputs/ altındaki üretilen dosyalar yoksayılır, üretim scriptleri izlenir.
+outputs/*
+!outputs/*.py
 results*.csv
 *.png
 *.pdf
