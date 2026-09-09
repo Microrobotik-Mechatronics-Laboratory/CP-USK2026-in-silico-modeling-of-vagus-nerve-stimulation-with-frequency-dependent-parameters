@@ -370,3 +370,29 @@ Editör CA3 inhibisyon literatürünü tarayıp internöron popülasyonu için
 biyolojik olarak makul parametre aralıklarını belirleyecek. Bu, yeni bir
 biyolojik bileşen (internöron tipi + bağlantı şeması) eklemeyi gerektirdiği
 için chatbot kendi başına parametre uydurmayacak.
+
+### TK-004 — Akson–Elektrot Geometri Hizalaması
+
+**Tarih:** 2026-09-09
+**Sorun:** Akson koordinatları her zaman z=0'dan başlıyor; elektrotun z konumu
+ise sabit bir sayı (`run_level1` varsayılanı z=3000 µm, `config.ELECTRODE_POS`
+ise z=5000 µm) ve akson uzunluğuna göre ölçeklenmiyor. Varsayılan 15 düğümde
+akson ~10.5 mm olduğu için ikisi de aralık içinde kalıyor; ancak `--n-nodes`
+küçültülürse (örn. 5 düğüm → ~3 mm) sabit elektrot konumu aksonun dışına
+düşebiliyor ve eşik sessizce tamamen değişiyor.
+
+BUG-004 düzeltilirken ölü `elec_z` parametresi kaldırıldı, ama "aksonu
+elektrota göre ortala" seçeneği uygulanmadı — simülasyon sonuçlarını
+değiştiren bir geometri kararı olduğu için editör onayı bekliyor.
+
+**Teorik sorular (literatür araştırması gerekiyor):**
+- Elektrot aksonun ortasına mı hizalanmalı (akson uzunluğuna göre otomatik),
+  yoksa sabit bir anatomik mesafe mi korunmalı (vagus'ta manşet elektrot
+  belirli bir noktaya yerleştirilir)?
+- `run_level1` (z=3000) ile `config.ELECTRODE_POS` (z=5000) arasındaki fark
+  kasıtlı mı, yoksa iki ayrı yerde bağımsız yazılmış bir tutarsızlık mı?
+- Elektrot akson aralığının dışına düştüğünde kod uyarı vermeli mi?
+
+**Chatbot'un bekleyeceği yönlendirme:**
+Editör hangi hizalama modelinin biyolojik olarak doğru olduğunu belirleyecek;
+ondan sonra chatbot kod tarafını uygular.
