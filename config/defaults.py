@@ -86,6 +86,12 @@ LIF_TAU_SYN_MS: float     = 5.0    # Sinaptik iletkenlik azalma zaman sabiti (ms
 # ---------------------------------------------------------------------------
 DEFAULT_BRIAN_DT_MS: float = 0.1   # defaultclock.dt (ms) — run_levels_2_3 ve run_full_network ortak
 
+# Aksonal mutlak refrakter periyot (ms). bridge.py'de fiber demeti kurulurken
+# uygulanır: bir akson bu süre içinde ikinci kez ateşleyemez. Jitter eklendikten
+# sonra çakışan spike'ları eler; bu olmadan >= 1 kHz uyarımda Brian2'nin
+# SpikeGeneratorGroup'u "aynı zaman adımında birden fazla spike" hatası veriyor.
+AXON_REFRACTORY_MS: float = 1.0
+
 # ---------------------------------------------------------------------------
 # Tarama frekansları
 # ---------------------------------------------------------------------------

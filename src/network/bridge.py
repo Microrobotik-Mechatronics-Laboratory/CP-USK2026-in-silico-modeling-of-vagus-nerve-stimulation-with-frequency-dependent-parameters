@@ -28,6 +28,8 @@ from typing import Iterable, Sequence
 import numpy as np
 from brian2 import SpikeGeneratorGroup, ms
 
+from config.defaults import AXON_REFRACTORY_MS, DEFAULT_BRIAN_DT_MS
+
 
 def neuron_spikes_to_brian_group(
     spike_times_ms: Iterable[float], n_fibers: int = 1, fiber_index: int = 0,
@@ -81,11 +83,48 @@ def _build_spike_generator(
     Döndürür
     --------
     brian2.SpikeGeneratorGroup
+
+    Notlar
+    ------
+    Her fibere önce mutlak refrakter periyot (AXON_REFRACTORY_MS) uygulanır,
+    ardından kalan spike'lar Brian2'nin zaman adımı ızgarasına oturtulur.
+    Bu iki adım olmadan yüksek frekanslı uyarımda (>= 1 kHz) aynı fiberin iki
+    spike'ı tek bir dt kutusuna düşüyor ve Brian2 "some neurons spike more
+    than once during a time step" hatasıyla simülasyonu durduruyordu.
+    Filtre yalnızca sayısal bir çare değil, biyolojik olarak da doğrudur:
+    bir akson mutlak refrakter periyot içinde ikinci kez ateşleyemez.
     """
-    order = np.argsort(all_times_ms)
-    times = np.array(all_times_ms)[order] * ms
-    indices = np.array(all_indices)[order]
-    return SpikeGeneratorGroup(n_fibers, indices, times)
+    times_arr = np.asarray(all_times_ms, dtype=float)
+    index_arr = np.asarray(all_indices, dtype=np.int64)
+
+    kept_times: list[np.ndarray] = []
+    kept_index: list[np.ndarray] = []
+    for fiber in range(n_fibers):
+        fiber_times = np.sort(times_arr[index_arr == fiber])
+        if fiber_times.size == 0:
+            continue
+
+        # 1) Mutlak refrakter periyot
+        accepted: list[float] = []
+        last = -np.inf
+        for t in fiber_times:
+            if t - last >= AXON_REFRACTORY_MS:
+                accepted.append(float(t))
+                last = float(t)
+
+        # 2) dt ızgarasına oturt — Brian2 zamanları aşağı yuvarlayarak
+        #    kutuladığı için kutu merkezine yerleştirip tekilleştiriyoruz.
+        bins = np.unique(np.floor(np.array(accepted) / DEFAULT_BRIAN_DT_MS).astype(np.int64))
+        kept_times.append((bins + 0.5) * DEFAULT_BRIAN_DT_MS)
+        kept_index.append(np.full(bins.size, fiber, dtype=np.int64))
+
+    if not kept_times:
+        return SpikeGeneratorGroup(n_fibers, np.array([], dtype=np.int64), np.array([]) * ms)
+
+    times = np.concatenate(kept_times)
+    indices = np.concatenate(kept_index)
+    order = np.argsort(times, kind="stable")
+    return SpikeGeneratorGroup(n_fibers, indices[order], times[order] * ms)
 
 
 def merge_fiber_populations(
