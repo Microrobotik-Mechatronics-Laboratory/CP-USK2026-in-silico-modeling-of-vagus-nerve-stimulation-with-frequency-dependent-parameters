@@ -173,22 +173,26 @@ class MRGAxon:
         sections.append(self.nodes[-1])
         return sections
 
-    def section_coords(self, elec_z: float = 5000.0) -> list[tuple[float, float, float]]:
+    def section_coords(self) -> list[tuple[float, float, float]]:
         """
         Her section için (x, y, z) koordinatlarını hesaplar.
 
-        Akson x ekseni boyunca uzanır. Her section'ın koordinatı,
-        o section'ın z-ekseni orta noktasıdır.
-
-        Parametreler
-        ------------
-        elec_z : float, optional
-            Elektrotun z koordinatı (µm). Koordinat sistemini ayarlamak için.
+        Akson z ekseni boyunca, z=0'dan başlayarak uzanır (x=y=0). Her
+        section'ın koordinatı, o section'ın z-ekseni orta noktasıdır.
+        Toplam uzunluk yaklaşık n_nodes * node_len + (n_nodes-1) * internode_len.
 
         Döndürür
         --------
         list of tuple(float, float, float)
-            all_sections() ile aynı sırада koordinatlar.
+            all_sections() ile aynı sırada koordinatlar.
+
+        Notlar
+        ------
+        Akson elektrota göre hizalanmaz; hizalama çağıranın sorumluluğudur —
+        elektrotun z konumu (`run_level1(elec_pos=...)`, config'te
+        DEFAULT_ELEC_Z) akson aralığı içinde kalmalıdır. Düğüm sayısı
+        azaltılırsa akson kısalır ve sabit bir elektrot z konumu aksonun
+        dışına düşebilir.
         """
         coords = []
         z = 0.0

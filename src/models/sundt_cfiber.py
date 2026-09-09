@@ -120,21 +120,21 @@ class CFiber:
         """
         return [self.section]
 
-    def section_coords(self, elec_z: float = 5000.0) -> list[tuple[float, float, float]]:
+    def section_coords(self) -> list[tuple[float, float, float]]:
         """
-        Her segment için (x, y, z) koordinatlarını hesaplar.
+        Section koordinatını (x, y, z) döndürür.
 
-        C-fiber z ekseni boyunca uzanır.
-
-        Parametreler
-        ------------
-        elec_z : float, optional
-            Elektrotun z koordinatı (µm) — koordinat sistemini ayarlamak için.
+        C-fiber z ekseni boyunca, z=0'dan başlayarak uzanır (x=y=0).
 
         Döndürür
         --------
         list of tuple(float, float, float)
-            all_sections() ile aynı sırada koordinatlar.
+            all_sections() ile aynı sırada koordinatlar (tek elemanlı).
+
+        Notlar
+        ------
+        Akson elektrota göre hizalanmaz; hizalama çağıranın sorumluluğudur —
+        elektrotun z konumu akson aralığı (0 – length_um) içinde kalmalıdır.
         """
         # Tek section olduğundan orta noktasını döndürüyoruz
         return [(0.0, 0.0, self.length / 2)]
