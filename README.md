@@ -201,55 +201,36 @@ Tam atıflar ve ModelDB accession numaraları için: [REFERENCES.md](REFERENCES.
 
 ---
 
-## Bilinen Kod Sorunları (Kod İncelemesi — 2026-07-15)
+## Çözülen Kod Sorunları (2026-09-09)
 
-Tüm kaynak kodun okunmasıyla yapılan bir incelemede aşağıdaki hatalar/tutarsızlıklar
-tespit edildi. Bunlar biyolojik model kalibrasyonu değil, yazılım mühendisliği
-sorunlarıdır (TK-001/002/003'ten ayrı). Henüz düzeltilmediler.
+2026-07-15 kod incelemesinde tespit edilen beş yazılım sorunu (BUG-001..005)
+düzeltildi. Bulguların tam metni `SDLC/KOD_INCELEMESI_2026-07-15.md`'de,
+düzeltme kayıtları `SDLC/MEVCUT_DURUM.md`'de.
 
-### BUG-001 (Kritik) — CLI parametreleri simülasyona ulaşmıyor
+| ID | Öncelik | Sorun | Durum |
+|:---|:---:|:---|:---|
+| BUG-001 | Kritik | `--fiber-diam`, `--n-nodes`, `--elec-dist`, `--pulse-width` parse ediliyor ama simülasyona iletilmiyordu | Zincir bağlandı: `main.py` → `run_frequency_sweep()` → `run_one_frequency()` → `run_level1()`. Regresyon testleriyle korunuyor. |
+| BUG-002 | Orta | `n_neurons` sözlüğü elle kopyalanmış sabitlerden geliyordu | Artık `NTS_PARAMS` / `*_PATHWAY_PARAMS`'tan türetiliyor |
+| BUG-003 | Orta | `args.x or DEFAULT_X` — `--amp 0` sessizce varsayılana dönüyordu | `is not None` kontrolüne geçildi |
+| BUG-004 | Düşük | `section_coords(elec_z=...)` tanımlı ama kullanılmıyordu | Ölü parametre kaldırıldı, elektrot hizalama sorumluluğu docstring'de netleştirildi |
+| BUG-005 | Düşük | `build_nts_relay()` TM parametreleri config'ten kopuk; `run_frequency_sweep` export edilmiyor; `bridge.py`'de kullanılmayan API | TM parametreleri `NTS_PARAMS` / `NTS_FACILITATING_PARAMS`'tan; export eklendi; `bridge.py` API'sinin bağımsız araç statüsü belgelendi |
 
-`--fiber-diam`, `--n-nodes`, `--elec-dist`, `--pulse-width` argümanları
-`main.py` tarafından parse ediliyor (ve ilk ikisi başlangıç banner'ında
-yazdırılıyor) ama `run_frequency_sweep()` → `run_one_frequency()` →
-`run_level1()` zincirine hiçbir zaman iletilmiyor. Simülasyon her zaman
-`run_level1()`'in kendi varsayılanlarını (8.7 µm fiber, 15 düğüm,
-elektrot z=3000 µm, 0.1 ms puls) kullanır — kullanıcı bu bayrakları
-değiştirse de sonuç değişmez.
+Ayrıca bu oturumda, proje yolunda ASCII olmayan karakter varken NEURON
+mekanizma kütüphanesinin yüklenememesi sorunu giderildi (aşağıya bakınız).
 
-### BUG-002 (Orta) — `n_neurons` sözlüğü config'ten kopuk
+### Yol Kısıtı — ASCII Olmayan Karakterler
 
-`src/pipeline/orchestrator.py::run_one_frequency()` içindeki
-`n_neurons = {"NTS": 30, "NAc": 100, "Insula": 100, "CA3": 100}` sözlüğü
-`config/defaults.py`'deki ilgili `n_neurons` alanlarından değil elle
-kopyalanmış sabitlerden geliyor. Şu an eşleşiyorlar; ama config'teki bir
-popülasyon büyüklüğü değişirse Hz/nöron oranları sessizce yanlış hesaplanır.
+NEURON'un `h.nrn_load_dll()` çağrısı yolu HOC yorumlayıcısına aktarır ve HOC
+yalnızca ASCII kabul eder. Proje yolunda Türkçe karakter varsa mekanizma
+yüklemesi `'ascii' codec can't encode character` hatasıyla başarısız olurdu.
+`src/models/_neuron_mechanisms.py` artık böyle bir durumda önce göreli yola,
+o da yeterli değilse geçici bir ASCII dizindeki sembolik bağlantıya düşüyor.
 
-### BUG-003 (Orta) — `main.py`'de falsy-zero (`or DEFAULT_X`) hatası
+> **Not:** Bu düzeltme yalnızca *yüklemeyi* kapsar. `nrnivmodl` ile
+> **derleme** hâlâ boşluksuz ve ASCII bir yol gerektirir (`make` boşluklu
+> yolları parçalar). Mekanizmaları yeniden derlemeniz gerekirse projeyi
+> geçici olarak böyle bir dizine kopyalayın.
 
-`amp`, `n_fibers`, `fiber_diam`, `n_nodes`, `active_threshold` için
-`args.x or DEFAULT_X` deseni kullanılıyor. `--amp 0` veya
-`--active-threshold 0` gibi anlamlı sıfır değerleri sessizce varsayılana
-döner (Python'da `0` falsy olduğu için).
-
-### BUG-004 (Düşük) — `elec_z` parametresi tanımlı ama kullanılmıyor
-
-`MRGAxon.section_coords()` ve `CFiber.section_coords()` metodlarındaki
-`elec_z` parametresi docstring'te "koordinat sistemini ayarlamak için"
-diye tanıtılıyor ama fonksiyon gövdesinde hiç kullanılmıyor.
-
-### BUG-005 (Düşük) — çeşitli küçük tutarsızlıklar
-
-`build_nts_relay()`'in TM parametreleri `NTS_PARAMS`'tan değil elle yazılmış
-sabitlerden geliyor; `src/pipeline/__init__.py` `run_frequency_sweep`'i
-export etmiyor; `src/network/bridge.py::neuron_spikes_to_brian_group()` ve
-`merge_fiber_populations()` hiçbir pipeline'da çağrılmıyor (kullanılmayan
-public API).
-
-Tam detay ve önerilen düzeltmeler: `SDLC/KOD_INCELEMESI_2026-07-15.md`
-(yerel SDLC klasörü — repoya push edilmez).
-
----
 
 ## Commit Formatı
 
