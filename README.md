@@ -152,12 +152,16 @@ python main.py --help
 | `--frequencies` | `[1,5,10,20,50,100,200,500]` | Taranacak frekanslar (Hz) |
 | `--full-range` | `False` | 1 Hz – 50 kHz tam aralık |
 | `--amp` | `3.0` | Uyarım genliği (µA) |
+| `--waveform` | `rectangular` | `rectangular` (bifazik kare dalga), `dc` (monofazik), `sinusoidal` (KHFAC) |
 | `--pulse-width` | `0.1` | Puls genişliği (ms) |
 | `--fiber-diam` | `8.7` | MRG fiber çapı (µm) |
 | `--n-nodes` | `15` | MRG Ranvier düğümü sayısı |
 | `--elec-dist` | `500.0` | Elektrot-akson mesafesi (µm) |
 | `--n-fibers` | `20` | Fiber demet büyüklüğü |
 | `--active-threshold` | `0.5` | Aktiflik eşiği (Hz/nöron) |
+| `--analysis-window` | `None` | Tüm frekanslarda sabit analiz penceresi (ms) |
+| `--n-repeats` | `5` | Koşul başına tekrar sayısı (ortalama ± SD) |
+| `--seed` | `1000` | Taban rastgele tohum |
 | `--output` | `None` | CSV çıktı dosyası |
 | `--save-plots` | `None` | Grafiklerin kaydedileceği dizin |
 | `--no-plot` | `False` | Grafik oluşturma |
@@ -191,13 +195,23 @@ Tam atıflar ve ModelDB accession numaraları için: [REFERENCES.md](REFERENCES.
 
 ## Önemli Uyarılar
 
-1. **El ayarı parametreler**: TM parametreleri gerçek elektrofizyoloji verisine fit edilmemiş.
-2. **Tek stokastik deneme**: Güvenilir sonuç için 5-10 tekrar ortalaması alın.
-3. **20 fiber sınırlaması**: Gerçek vagus siniri ~80,000 fiber içerir.
-4. **İnhibisyon eksik**: CA3'te GABAerjik internöron yok — biyolojik model
+1. **Kısmen kalibre parametreler**: NTS afferent sinapsı Miles (1986) ve
+   Chen ve ark. (1999) verisine fit edildi. Downstream yolakların
+   (NAc / İnsula / CA3) TM parametreleri hâlâ el ayarıdır — bölgeye özgü
+   deneysel STP verisi ya yok (insula) ya da modelin varsayımıyla kısmen
+   çelişiyor (NAc; bkz. TK-005).
+2. **20 fiber sınırlaması**: Gerçek vagus siniri ~80,000 fiber içerir.
+3. **İnhibisyon eksik**: CA3'te GABAerjik internöron yok — biyolojik model
    kalibrasyonu gerektirdiği için literatür incelemesi bekleniyor (bkz. aşağıdaki
    Teorik Kısıt bölümü, TK-003).
-5. **HH fallback**: MRG mekanizması derlenmezse HH kullanılır — eşikler farklı çıkar.
+4. **HH fallback**: MRG mekanizması derlenmezse HH kullanılır — eşikler farklı çıkar.
+5. **İndirgenmiş akson modeli**: MRG'nin çift-kablo yapısındaki MYSA/FLUT/STIN
+   paranodal bölümleri modellenmiyor; düğüm + tek miyelinli internode
+   kullanılıyor. İleti hızı doğru mertebede ve insan vagus Aα aralığında
+   (30–62 m/s) çıkıyor, ancak MRG'nin çapa göre doğrusal ölçeklemesini
+   birebir üretmiyor.
+6. **Sıcaklık**: Model NEURON varsayılanı 6.3°C'de çalışıyor, 37°C değil
+   (bkz. TK-002).
 
 ---
 
@@ -217,6 +231,34 @@ düzeltme kayıtları `SDLC/MEVCUT_DURUM.md`'de.
 
 Ayrıca bu oturumda, proje yolunda ASCII olmayan karakter varken NEURON
 mekanizma kütüphanesinin yüklenememesi sorunu giderildi (aşağıya bakınız).
+
+### Biyofizik ve Sayısal Düzeltmeler (2026-09-09)
+
+Poster sonuçları üretilirken yapılan doğrulama çalışması sırasında, mevcut
+sonuçları geçersiz kılan beş sorun daha bulundu ve düzeltildi.
+
+| ID | Öncelik | Sorun | Düzeltme ve doğrulama |
+|:---|:---:|:---|:---|
+| BUG-006 | Kritik | `point_source_potential` mikrovolt üretip milivolt olarak uygulanıyordu — akson **1000 kat** büyük alan görüyordu | Birim dönüşümü eklendi. Eşik artık ~1–2 mA; klinik VNS aralığı 0.25–3.5 mA içinde. Regresyon testiyle korunuyor |
+| BUG-007 | Kritik | Internode'a miyelin kapasitansı verilmiyordu (`cm` = 1 µF/cm²); saltatory iletim oluşmuyordu | `cm` ve `g_pas` lamel sayısına bölünüyor. İleti hızı 0.5 → 30–54 m/s |
+| BUG-008 | Kritik | `MRG_PARAMS` geometrisi ModelDB 3810 ile uyuşmuyordu (8.7/12.8/16.0 µm) | Tablo `MRGaxon.hoc`'tan birebir güncellendi, `axon_diam` sütunu eklendi |
+| BUG-009 | Kritik | Frekansa uyarlanan pencere, Hz/nöron oranında sahte frekans etkisi üretiyordu | `--analysis-window` ile sabit pencere; çıktıya mutlak spike sayısı eklendi |
+| BUG-010 | Orta | ≥1 kHz'de aynı fiberin iki spike'ı tek zaman adımına düşüp Brian2'yi çökertiyordu | Fiber başına 1 ms aksonal refrakter periyot + dt ızgarasına oturtma; 4 test |
+
+Ek olarak `--waveform dc` (bildiri özetinin gerektirdiği monofazik uyarım),
+tekrarlı çalıştırma (`--n-repeats`, `--seed`) ve takip oranı (`follow_ratio`)
+çıktısı eklendi; NTS TM parametreleri Miles (1986) ve Chen ve ark. (1999)
+verisine kalibre edildi.
+
+**Doğrulama sonuçları:**
+
+| Ölçüt | Model | Literatür |
+|:---|:---|:---|
+| TM analitik ↔ simülasyon | kalıntı < %0.2 | Tsodyks & Markram (1997) |
+| NTS kararlı-durum PSP (5/10/20 Hz) | 0.60 / 0.41 / 0.26 | 0.65 / 0.40 / 0.20 — Miles (1986) |
+| NTS aktarımı @20 Hz | 0.255 | ~%25 — Beaumont ve ark. (2017) |
+| İleti hızı (5.7–16 µm) | 30–54 m/s | insan vagus Aα 30.5–62.8 m/s — Musselman ve ark. (2023) |
+| Aktivasyon eşiği | ~1–2 mA | klinik VNS 0.25–3.5 mA — Krahl & Clark (2012) |
 
 ### Yol Kısıtı — ASCII Olmayan Karakterler
 
@@ -396,3 +438,47 @@ değiştiren bir geometri kararı olduğu için editör onayı bekliyor.
 **Chatbot'un bekleyeceği yönlendirme:**
 Editör hangi hizalama modelinin biyolojik olarak doğru olduğunu belirleyecek;
 ondan sonra chatbot kod tarafını uygular.
+
+### TK-005 — Downstream Yolakların STP Parametreleri ve NAc Fasilitasyonu
+
+**Tarih:** 2026-09-09
+**Sorun:** NTS afferent sinapsı deneysel veriye kalibre edildi (Miles 1986 +
+Chen ve ark. 1999), ancak downstream yolakların (NAc / İnsula / CA3) TM
+parametreleri hâlâ el ayarıdır. Literatür taraması üç ayrı sorun gösterdi:
+
+- **NAc (U=0.05, güçlü fasilitasyon):** Britt ve ark. (2012), *Neuron*
+  76:790 — NAc'e gelen iki büyük limbik girdi **depresan** (PFC→NAc ve
+  vHipp→NAc, PPR≈0.8); yalnızca BLA→NAc fasilite ediyor (PPR≈1.2).
+  Modelin güçlü fasilitasyon varsayımı ancak BLA-benzeri bir girdiyle
+  gerekçelendirilebilir. Boeijinga ve ark. (1990) subiküler girdide in vivo
+  PPF bildiriyor — Britt'in in vitro sonucuyla çelişiyor.
+- **İnsula:** İnsular kortekse özgü, TM parametrelerine çevrilebilir nicel
+  STP verisi literatürde **bulunamadı**. Mevcut değerler genel neokortikal
+  depresan sinapstan türetilmiş durumda (Markram, Wang & Tsodyks 1998,
+  *PNAS* 95:5323 — piramidal-piramidal U = 0.59 ± 0.16, τ_rec = 813 ± 240 ms).
+- **CA3 (τ_f=150 ms):** Salin ve ark. (1996), *PNAS* 93:13304 — mossy fiber
+  PPF çift üstel (τ₁=27 ms, τ₂=301 ms) ve saniyeler mertebesinde frekans
+  fasilitasyonu var. τ_f=150 ms yalnızca hızlı bileşeni yakalıyor.
+
+**Ölçülen etki:** NTS rölesi TM depresyonu nedeniyle çıkışını `1/τ_d`
+sınırında (kalibre parametrelerle ~1.2 Hz) sabitliyor. Bu, downstream
+bölgelere ulaşan frekans bilgisini büyük ölçüde siliyor; ayrışma analitik
+olarak mevcut (NAc 1 Hz→500 Hz arasında ~172× kazanç) ama ağ çıktısında
+görünmüyor. Bu davranış literatürle uyumludur: Huffman ve ark. (2023),
+*Bioelectron Med* 9:3, VNS modellerinde frekansa bağlı sinaptik filtreleme
+olmadan >50 Hz yanıtının sistematik olarak fazla tahmin edildiğini gösteriyor.
+
+**Teorik sorular (literatür araştırması gerekiyor):**
+- NAc için hangi anatomik girdi modellenmelidir (NTS→PBN→BLA→NAc mı, yoksa
+  doğrudan bir projeksiyon mu)? Bu, U seçimini belirler.
+- İnsula yolağı için talamik röle (Craig 2002) eklenmeli mi — eklenirse
+  ikinci bir depresan basamak frekans bilgisini daha da azaltır mı?
+- NTS'nin alçak-geçiren davranışı bir bulgu olarak mı sunulmalı, yoksa
+  postsinaptik NMDA aracılı frekans fasilitasyonu (Zhao ve ark. 2015,
+  *J Physiol*) modellenerek dengelenmeli mi?
+- Tek havuzlu TM modeli Miles'ın kararlı-durum eğrisi ile Chen'in toparlanma
+  sabitini aynı anda sağlayamıyor; iki havuzlu bir model gerekli mi?
+
+**Chatbot'un bekleyeceği yönlendirme:**
+Editör hangi anatomik yolağın ve hangi deneysel kaynağın esas alınacağını
+belirleyecek; ondan sonra chatbot kod tarafını uygular.
