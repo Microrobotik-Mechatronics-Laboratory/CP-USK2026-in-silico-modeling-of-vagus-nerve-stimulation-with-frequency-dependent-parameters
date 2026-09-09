@@ -37,6 +37,7 @@ DEFAULT_AMP: float           = 3.0    # Uyarım genliği (µA)
 DEFAULT_N_FIBERS: int        = 20     # Fiber demeti büyüklüğü
 DEFAULT_FIBER_DIAM: float    = 8.7    # MRG akson çapı (µm)
 DEFAULT_N_NODES: int         = 15     # MRG düğüm sayısı
+DEFAULT_ELEC_DIST: float     = 500.0  # Elektrot-akson mesafesi, x ekseni (µm)
 DEFAULT_ELEC_Z: float        = 3000.0 # Elektrot z konumu run_level1 için (µm)
 DEFAULT_PULSE_WIDTH: float   = 0.1    # Puls genişliği (ms)
 DEFAULT_CELSIUS: float       = 37.0   # Fizyolojik hedef sıcaklık (°C) — ŞUANDA KULLANILMIYOR.

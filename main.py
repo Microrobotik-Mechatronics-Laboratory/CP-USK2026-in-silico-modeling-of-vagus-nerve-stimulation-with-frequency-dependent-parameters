@@ -119,9 +119,12 @@ def build_parser() -> argparse.ArgumentParser:
     fiber_group.add_argument(
         "--elec-dist",
         type=float,
-        default=500.0,
+        default=None,
         metavar="UM",
-        help="Elektrot-akson mesafesi x ekseninde (µm). Varsayılan: 500 µm.",
+        help=(
+            "Elektrot-akson mesafesi x ekseninde (µm). "
+            "Varsayılan: config/defaults.py → DEFAULT_ELEC_DIST = 500 µm."
+        ),
     )
 
     # --- Brian2 ağ parametreleri ---
@@ -194,6 +197,9 @@ def main() -> None:
             DEFAULT_N_FIBERS,
             DEFAULT_FIBER_DIAM,
             DEFAULT_N_NODES,
+            DEFAULT_ELEC_DIST,
+            DEFAULT_ELEC_Z,
+            DEFAULT_PULSE_WIDTH,
             DEFAULT_ACTIVE_THRESHOLD_HZ,
         )
         from src.pipeline.orchestrator import run_frequency_sweep
@@ -214,19 +220,31 @@ def main() -> None:
         default_frequency_range() if args.full_range
         else (args.frequencies or DEFAULT_FREQUENCIES)
     )
-    amp             = args.amp            or DEFAULT_AMP
-    n_fibers        = args.n_fibers       or DEFAULT_N_FIBERS
-    fiber_diam      = args.fiber_diam     or DEFAULT_FIBER_DIAM
-    n_nodes         = args.n_nodes        or DEFAULT_N_NODES
-    active_thresh   = args.active_threshold or DEFAULT_ACTIVE_THRESHOLD_HZ
-    verbose         = not args.quiet
+    # Not: "or DEFAULT_X" yerine "is not None" — 0 Python'da falsy olduğu için
+    # --amp 0 (uyarımsız temel çizgi) veya --active-threshold 0 (her spike aktif
+    # sayılsın) gibi anlamlı sıfır değerleri sessizce varsayılana dönmemeli.
+    amp           = args.amp         if args.amp         is not None else DEFAULT_AMP
+    n_fibers      = args.n_fibers    if args.n_fibers    is not None else DEFAULT_N_FIBERS
+    fiber_diam    = args.fiber_diam  if args.fiber_diam  is not None else DEFAULT_FIBER_DIAM
+    n_nodes       = args.n_nodes     if args.n_nodes     is not None else DEFAULT_N_NODES
+    elec_dist     = args.elec_dist   if args.elec_dist   is not None else DEFAULT_ELEC_DIST
+    pulse_width   = args.pulse_width if args.pulse_width is not None else DEFAULT_PULSE_WIDTH
+    active_thresh = (args.active_threshold if args.active_threshold is not None
+                     else DEFAULT_ACTIVE_THRESHOLD_HZ)
+    verbose       = not args.quiet
+
+    # Elektrot konumu: --elec-dist x eksenindeki mesafeyi belirler; z konumu
+    # config/defaults.py'deki DEFAULT_ELEC_Z'den gelir (aksonun ortasına yakın).
+    elec_pos = (elec_dist, 0.0, DEFAULT_ELEC_Z)
 
     print("=" * 60)
     print("Periferik Sinir Stimülasyonu — Frekans Çalışması")
     print("=" * 60)
     print(f"  Frekanslar : {frequencies} Hz")
     print(f"  Genlik     : {amp} µA")
+    print(f"  Puls genişliği: {pulse_width} ms")
     print(f"  Fiber çapı : {fiber_diam} µm  |  Düğüm sayısı: {n_nodes}")
+    print(f"  Elektrot   : x={elec_dist} µm, z={DEFAULT_ELEC_Z} µm")
     print(f"  Fiber demeti: {n_fibers} fiber")
     print(f"  Aktif eşiği: {active_thresh} Hz/nöron")
     print("=" * 60)
@@ -237,6 +255,10 @@ def main() -> None:
         amp=amp,
         n_fibers=n_fibers,
         verbose=verbose,
+        fiber_diam=fiber_diam,
+        n_nodes=n_nodes,
+        elec_pos=elec_pos,
+        pulse_width_ms=pulse_width,
     )
 
     df = pd.DataFrame(records)

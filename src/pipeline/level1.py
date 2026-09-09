@@ -14,6 +14,8 @@ from config.defaults import (
     DEFAULT_PULSE_WIDTH,
     DEFAULT_N_NODES,
     DEFAULT_FIBER_DIAM,
+    DEFAULT_ELEC_DIST,
+    DEFAULT_ELEC_Z,
     DEFAULT_V_INIT_MV,
 )
 from src.models.mrg_axon import MRGAxon
@@ -23,7 +25,8 @@ from src.stim.extracellular_field import biphasic_waveform, run_stimulation_loop
 def run_level1(
     freq_hz: float = 20, amp: float = 1.0, duration_ms: float = 200, dt: float = DEFAULT_DT,
     fiber_diam: float = DEFAULT_FIBER_DIAM, n_nodes: int = DEFAULT_N_NODES,
-    elec_pos: tuple[float, float, float] = (500.0, 0.0, 3000.0),
+    elec_pos: tuple[float, float, float] = (DEFAULT_ELEC_DIST, 0.0, DEFAULT_ELEC_Z),
+    pulse_width_ms: float = DEFAULT_PULSE_WIDTH,
 ) -> list[float]:
     """
     Level 1: NEURON MRG aksonunu uyarır ve distal spike zamanlarını döndürür.
@@ -47,7 +50,10 @@ def run_level1(
         MRG düğüm sayısı. Varsayılan 15 (hız/doğruluk dengesi).
         Not: Klasik MRG 21 düğüm kullanır; 15 daha hızlıdır.
     elec_pos : tuple(float, float, float), optional
-        Elektrot konumu (µm). Varsayılan: aksonun ortasına yakın (z=3000 µm).
+        Elektrot konumu (µm). Varsayılan: config/defaults.py'deki
+        (DEFAULT_ELEC_DIST, 0, DEFAULT_ELEC_Z) — aksonun ortasına yakın (z=3000 µm).
+    pulse_width_ms : float, optional
+        Her uyarım fazının süresi (ms). Varsayılan: DEFAULT_PULSE_WIDTH = 0.1 ms.
 
     Döndürür
     --------
@@ -68,7 +74,7 @@ def run_level1(
 
     t_vec, i_vec = biphasic_waveform(
         freq_hz, amp, duration_ms, dt,
-        pulse_width_ms=DEFAULT_PULSE_WIDTH,
+        pulse_width_ms=pulse_width_ms,
         waveform="rectangular",
     )
 

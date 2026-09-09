@@ -15,6 +15,15 @@ from config.defaults import (
     DEFAULT_N_CYCLES,
     DEFAULT_MIN_MS,
     DEFAULT_MAX_MS,
+    DEFAULT_FIBER_DIAM,
+    DEFAULT_N_NODES,
+    DEFAULT_ELEC_DIST,
+    DEFAULT_ELEC_Z,
+    DEFAULT_PULSE_WIDTH,
+    NTS_PARAMS,
+    NAC_PATHWAY_PARAMS,
+    INSULA_PATHWAY_PARAMS,
+    CA3_PATHWAY_PARAMS,
 )
 from typing import Any
 
@@ -63,7 +72,10 @@ def cycles_to_duration_ms(
 
 def run_one_frequency(
     freq_hz: float, amp: float = DEFAULT_AMP, n_fibers: int = DEFAULT_N_FIBERS,
-    verbose: bool = True,
+    verbose: bool = True, fiber_diam: float = DEFAULT_FIBER_DIAM,
+    n_nodes: int = DEFAULT_N_NODES,
+    elec_pos: tuple[float, float, float] = (DEFAULT_ELEC_DIST, 0.0, DEFAULT_ELEC_Z),
+    pulse_width_ms: float = DEFAULT_PULSE_WIDTH,
 ) -> dict[str, Any]:
     """
     Tek frekans için tam Level 1 → Level 2-3 pipeline çalıştırır.
@@ -78,6 +90,14 @@ def run_one_frequency(
         Fiber demet büyüklüğü. Varsayılan 20.
     verbose : bool, optional
         True ise ilerleme mesajı yazdırır. Varsayılan True.
+    fiber_diam : float, optional
+        MRG fiber çapı (µm). Varsayılan DEFAULT_FIBER_DIAM = 8.7 µm.
+    n_nodes : int, optional
+        MRG Ranvier düğümü sayısı. Varsayılan DEFAULT_N_NODES = 15.
+    elec_pos : tuple(float, float, float), optional
+        Elektrot konumu (µm). Varsayılan (DEFAULT_ELEC_DIST, 0, DEFAULT_ELEC_Z).
+    pulse_width_ms : float, optional
+        Her uyarım fazının süresi (ms). Varsayılan DEFAULT_PULSE_WIDTH = 0.1 ms.
 
     Döndürür
     --------
@@ -99,7 +119,11 @@ def run_one_frequency(
     Kaynak: nerve_frequency_study_colab.ipynb — Cell 28
     """
     duration_ms = cycles_to_duration_ms(freq_hz)
-    spikes = run_level1(freq_hz=freq_hz, amp=amp, duration_ms=duration_ms)
+    spikes = run_level1(
+        freq_hz=freq_hz, amp=amp, duration_ms=duration_ms,
+        fiber_diam=fiber_diam, n_nodes=n_nodes, elec_pos=elec_pos,
+        pulse_width_ms=pulse_width_ms,
+    )
 
     if verbose:
         print(f"  {freq_hz} Hz → axon spikes: {len(spikes)}", end="  ")
@@ -116,7 +140,12 @@ def run_one_frequency(
 
     mons = run_full_network(spikes, duration_ms=duration_ms, n_fibers=n_fibers)
 
-    n_neurons = {"NTS": 30, "NAc": 100, "Insula": 100, "CA3": 100}
+    n_neurons = {
+        "NTS": NTS_PARAMS["n_neurons"],
+        "NAc": NAC_PATHWAY_PARAMS["n_neurons"],
+        "Insula": INSULA_PATHWAY_PARAMS["n_neurons"],
+        "CA3": CA3_PATHWAY_PARAMS["n_neurons"],
+    }
     rates = {
         region: mon.num_spikes / n_neurons[region] / (duration_ms / 1000.0)
         for region, mon in mons.items()
@@ -134,7 +163,10 @@ def run_one_frequency(
 
 def run_frequency_sweep(
     frequencies: list[float], amp: float = DEFAULT_AMP, n_fibers: int = DEFAULT_N_FIBERS,
-    verbose: bool = True,
+    verbose: bool = True, fiber_diam: float = DEFAULT_FIBER_DIAM,
+    n_nodes: int = DEFAULT_N_NODES,
+    elec_pos: tuple[float, float, float] = (DEFAULT_ELEC_DIST, 0.0, DEFAULT_ELEC_Z),
+    pulse_width_ms: float = DEFAULT_PULSE_WIDTH,
 ) -> list[dict[str, Any]]:
     """
     Verilen frekans listesi için tam sweep çalıştırır.
@@ -149,6 +181,14 @@ def run_frequency_sweep(
         Fiber demet büyüklüğü. Varsayılan 20.
     verbose : bool, optional
         True ise her frekans için ilerleme mesajı yazdırır.
+    fiber_diam : float, optional
+        MRG fiber çapı (µm). Varsayılan DEFAULT_FIBER_DIAM = 8.7 µm.
+    n_nodes : int, optional
+        MRG Ranvier düğümü sayısı. Varsayılan DEFAULT_N_NODES = 15.
+    elec_pos : tuple(float, float, float), optional
+        Elektrot konumu (µm). Varsayılan (DEFAULT_ELEC_DIST, 0, DEFAULT_ELEC_Z).
+    pulse_width_ms : float, optional
+        Her uyarım fazının süresi (ms). Varsayılan DEFAULT_PULSE_WIDTH = 0.1 ms.
 
     Döndürür
     --------
@@ -166,6 +206,10 @@ def run_frequency_sweep(
     for f in frequencies:
         if verbose:
             print(f"Çalışıyor: {f} Hz ...")
-        rec = run_one_frequency(f, amp=amp, n_fibers=n_fibers, verbose=verbose)
+        rec = run_one_frequency(
+            f, amp=amp, n_fibers=n_fibers, verbose=verbose,
+            fiber_diam=fiber_diam, n_nodes=n_nodes, elec_pos=elec_pos,
+            pulse_width_ms=pulse_width_ms,
+        )
         records.append(rec)
     return records
