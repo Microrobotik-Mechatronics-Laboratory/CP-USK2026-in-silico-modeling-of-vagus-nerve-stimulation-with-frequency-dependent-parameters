@@ -265,6 +265,12 @@ def main() -> None:
 
     # --- CSV çıktısı ---
     if args.output:
+        # Üst dizin yoksa oluştur — CSV yazımı grafik bloğundan (ve oradaki
+        # os.makedirs çağrısından) önce geldiği için "--output outputs/x.csv"
+        # aksi halde OSError ile düşer ve tüm sweep sonucu kaybolur.
+        out_dir = os.path.dirname(args.output)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
         df.to_csv(args.output, index=False)
         print(f"\nSonuçlar kaydedildi: {args.output}")
 
