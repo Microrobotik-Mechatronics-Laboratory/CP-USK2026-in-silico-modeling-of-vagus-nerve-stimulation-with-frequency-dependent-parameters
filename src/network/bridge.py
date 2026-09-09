@@ -12,6 +12,14 @@ formata dönüştürür ("offline coupling" / "one-way coupling").
     - merge_fiber_populations        : Çoklu fiber → tek SpikeGeneratorGroup
     - bundle_from_single_fiber       : Tek fiberin spike zamanlarından demet oluşturur
 
+Ana pipeline (level23.py) yalnızca `bundle_from_single_fiber()` kullanır —
+tek aksonu jitter ile çoğaltarak demet üretmek mevcut Level 1'in tek fiber
+simüle etmesinden kaynaklanır. `neuron_spikes_to_brian_group()` ve
+`merge_fiber_populations()` pipeline'da çağrılmaz; gerçekten farklı fiberler
+(farklı çap/eşik) simüle edildiğinde kullanılmak üzere bağımsız yardımcı
+API olarak korunur — `frequency_sweep.py`/`threshold_finder.py` ile aynı
+gerekçe (bkz. SDLC/TEKNIK_NOTLAR.md → Proje Kısıtlamaları).
+
 Kaynak: nerve_frequency_study_colab.ipynb — Cell 20, Cell 26 (kısmen)
 """
 
