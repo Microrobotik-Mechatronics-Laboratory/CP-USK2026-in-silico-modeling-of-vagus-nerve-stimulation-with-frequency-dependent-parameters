@@ -373,10 +373,10 @@ def main() -> None:
     os.makedirs(out_dir, exist_ok=True)
     df = pd.read_csv(csv_path) if os.path.exists(csv_path) else None
 
-    fig = plt.figure(figsize=(8.3, 11.4))
-    gs = GridSpec(5, 2, figure=fig, height_ratios=[0.92, 0.80, 1.10, 0.80, 0.72],
-                  hspace=0.78, wspace=0.30,
-                  left=0.085, right=0.975, top=0.932, bottom=0.035)
+    fig = plt.figure(figsize=(10.0, 10.0))   # 1:1 kare
+    gs = GridSpec(5, 2, figure=fig, height_ratios=[0.86, 0.86, 1.02, 0.86, 0.66],
+                  hspace=0.70, wspace=0.24,
+                  left=0.070, right=0.985, top=0.930, bottom=0.032)
 
     panel_a(fig.add_subplot(gs[0, :]))
     panel_b(fig.add_subplot(gs[1, 0]))
@@ -386,7 +386,7 @@ def main() -> None:
     panel_f(fig.add_subplot(gs[3, 1]), df)
     panel_g(fig.add_subplot(gs[4, :]))
 
-    fig.text(0.085, 0.984,
+    fig.text(0.070, 0.980,
              "Kapsam: 2 dalga şekli × 3 genlik (1–3 mA) × 5 frekans "
              f"(1 Hz–10 kHz) = 30 koşul × {DEFAULT_N_REPEATS} tekrar   ·   "
              f"MRG {DEFAULT_FIBER_DIAM} µm, {DEFAULT_N_NODES} düğüm, "
@@ -394,7 +394,7 @@ def main() -> None:
              fontsize=7.0, color=GRAY, ha="left", va="top")
 
     path = os.path.join(out_dir, "sekil0_mimari.png")
-    fig.savefig(path, dpi=DPI, bbox_inches="tight", facecolor="white")
+    fig.savefig(path, dpi=DPI, facecolor="white")
     plt.close(fig)
     print("Yazıldı:", path)
 
