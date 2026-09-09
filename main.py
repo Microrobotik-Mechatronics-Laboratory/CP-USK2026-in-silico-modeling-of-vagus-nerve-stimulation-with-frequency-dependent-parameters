@@ -88,6 +88,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Uyarım genliği (µA). Varsayılan: config/defaults.py → DEFAULT_AMP.",
     )
     stim_group.add_argument(
+        "--waveform",
+        type=str,
+        default="rectangular",
+        choices=["rectangular", "dc", "sinusoidal"],
+        help=(
+            "Uyarım dalga formu. rectangular: yük dengeli bifazik kare dalga "
+            "(varsayılan). dc: monofazik puls treni. sinusoidal: KHFAC."
+        ),
+    )
+    stim_group.add_argument(
         "--pulse-width",
         type=float,
         default=None,
@@ -149,6 +159,32 @@ def build_parser() -> argparse.ArgumentParser:
 
     # --- Çıktı parametreleri ---
     out_group = parser.add_argument_group("Çıktı Parametreleri")
+    net_group.add_argument(
+        "--analysis-window",
+        type=float,
+        default=None,
+        metavar="MS",
+        help=(
+            "Tüm frekanslarda kullanılacak sabit analiz penceresi (ms). "
+            "Belirtilmezse frekansa göre uyarlanır. Frekanslar arası "
+            "karşılaştırma yapılacaksa sabit pencere kullanın."
+        ),
+    )
+    net_group.add_argument(
+        "--n-repeats",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Koşul başına tekrar sayısı (ortalama ± SD). Varsayılan: 5.",
+    )
+    net_group.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Taban rastgele tohum. Varsayılan: 1000.",
+    )
+
     out_group.add_argument(
         "--output",
         type=str,
@@ -201,6 +237,8 @@ def main() -> None:
             DEFAULT_ELEC_Z,
             DEFAULT_PULSE_WIDTH,
             DEFAULT_ACTIVE_THRESHOLD_HZ,
+            DEFAULT_N_REPEATS,
+            DEFAULT_SEED,
         )
         from src.pipeline.orchestrator import run_frequency_sweep
         from src.sweep.frequency_sweep import default_frequency_range
@@ -231,6 +269,8 @@ def main() -> None:
     pulse_width   = args.pulse_width if args.pulse_width is not None else DEFAULT_PULSE_WIDTH
     active_thresh = (args.active_threshold if args.active_threshold is not None
                      else DEFAULT_ACTIVE_THRESHOLD_HZ)
+    n_repeats     = args.n_repeats if args.n_repeats is not None else DEFAULT_N_REPEATS
+    seed          = args.seed      if args.seed      is not None else DEFAULT_SEED
     verbose       = not args.quiet
 
     # Elektrot konumu: --elec-dist x eksenindeki mesafeyi belirler; z konumu
@@ -242,11 +282,15 @@ def main() -> None:
     print("=" * 60)
     print(f"  Frekanslar : {frequencies} Hz")
     print(f"  Genlik     : {amp} µA")
+    print(f"  Dalga formu: {args.waveform}")
     print(f"  Puls genişliği: {pulse_width} ms")
     print(f"  Fiber çapı : {fiber_diam} µm  |  Düğüm sayısı: {n_nodes}")
     print(f"  Elektrot   : x={elec_dist} µm, z={DEFAULT_ELEC_Z} µm")
     print(f"  Fiber demeti: {n_fibers} fiber")
     print(f"  Aktif eşiği: {active_thresh} Hz/nöron")
+    print(f"  Tekrar: {n_repeats} (tohum {seed})"
+          + (f"  |  Sabit pencere: {args.analysis_window} ms"
+             if args.analysis_window else "  |  Pencere: frekansa uyarlanır"))
     print("=" * 60)
 
     # --- Simülasyon ---
@@ -259,6 +303,10 @@ def main() -> None:
         n_nodes=n_nodes,
         elec_pos=elec_pos,
         pulse_width_ms=pulse_width,
+        waveform=args.waveform,
+        analysis_window_ms=args.analysis_window,
+        n_repeats=n_repeats,
+        seed=seed,
     )
 
     df = pd.DataFrame(records)
@@ -276,7 +324,9 @@ def main() -> None:
 
     # --- Konsol özeti ---
     print("\n--- Sonuç Özeti ---")
-    print(df[["freq_hz", "n_axon_spikes", "NTS", "NAc", "Insula", "CA3"]].to_string(index=False))
+    summary_cols = ["freq_hz", "n_pulses", "n_axon_spikes", "follow_ratio",
+                    "NTS", "NAc", "Insula", "CA3"]
+    print(df[summary_cols].to_string(index=False))
 
     # --- Dissociation tablosu ---
     print("\n--- Dissociation Tablosu ---")

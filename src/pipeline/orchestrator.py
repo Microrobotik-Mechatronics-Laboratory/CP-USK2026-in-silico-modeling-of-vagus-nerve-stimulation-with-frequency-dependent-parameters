@@ -81,6 +81,7 @@ def run_one_frequency(
     n_nodes: int = DEFAULT_N_NODES,
     elec_pos: tuple[float, float, float] = (DEFAULT_ELEC_DIST, 0.0, DEFAULT_ELEC_Z),
     pulse_width_ms: float = DEFAULT_PULSE_WIDTH,
+    waveform: str = "rectangular",
     analysis_window_ms: Optional[float] = None,
     n_repeats: int = DEFAULT_N_REPEATS, seed: int = DEFAULT_SEED,
 ) -> dict[str, Any]:
@@ -105,6 +106,9 @@ def run_one_frequency(
         Elektrot konumu (µm). Varsayılan (DEFAULT_ELEC_DIST, 0, DEFAULT_ELEC_Z).
     pulse_width_ms : float, optional
         Her uyarım fazının süresi (ms). Varsayılan DEFAULT_PULSE_WIDTH = 0.1 ms.
+    waveform : str, optional
+        "rectangular" (bifazik kare dalga), "dc" (monofazik) veya
+        "sinusoidal". Varsayılan "rectangular".
     analysis_window_ms : float, optional
         Tüm frekanslarda kullanılacak sabit simülasyon/analiz penceresi (ms).
         None ise cycles_to_duration_ms() ile frekansa göre uyarlanır.
@@ -143,7 +147,7 @@ def run_one_frequency(
     spikes = run_level1(
         freq_hz=freq_hz, amp=amp, duration_ms=duration_ms,
         fiber_diam=fiber_diam, n_nodes=n_nodes, elec_pos=elec_pos,
-        pulse_width_ms=pulse_width_ms,
+        pulse_width_ms=pulse_width_ms, waveform=waveform,
     )
     n_pulses = int(np.ceil(duration_ms * freq_hz / 1000.0))
 
@@ -213,6 +217,7 @@ def run_frequency_sweep(
     n_nodes: int = DEFAULT_N_NODES,
     elec_pos: tuple[float, float, float] = (DEFAULT_ELEC_DIST, 0.0, DEFAULT_ELEC_Z),
     pulse_width_ms: float = DEFAULT_PULSE_WIDTH,
+    waveform: str = "rectangular",
     analysis_window_ms: Optional[float] = None,
     n_repeats: int = DEFAULT_N_REPEATS, seed: int = DEFAULT_SEED,
 ) -> list[dict[str, Any]]:
@@ -257,7 +262,8 @@ def run_frequency_sweep(
         rec = run_one_frequency(
             f, amp=amp, n_fibers=n_fibers, verbose=verbose,
             fiber_diam=fiber_diam, n_nodes=n_nodes, elec_pos=elec_pos,
-            pulse_width_ms=pulse_width_ms, analysis_window_ms=analysis_window_ms,
+            pulse_width_ms=pulse_width_ms, waveform=waveform,
+            analysis_window_ms=analysis_window_ms,
             n_repeats=n_repeats, seed=seed,
         )
         records.append(rec)

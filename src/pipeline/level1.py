@@ -27,6 +27,7 @@ def run_level1(
     fiber_diam: float = DEFAULT_FIBER_DIAM, n_nodes: int = DEFAULT_N_NODES,
     elec_pos: tuple[float, float, float] = (DEFAULT_ELEC_DIST, 0.0, DEFAULT_ELEC_Z),
     pulse_width_ms: float = DEFAULT_PULSE_WIDTH,
+    waveform: str = "rectangular",
 ) -> list[float]:
     """
     Level 1: NEURON MRG aksonunu uyarır ve distal spike zamanlarını döndürür.
@@ -54,6 +55,9 @@ def run_level1(
         (DEFAULT_ELEC_DIST, 0, DEFAULT_ELEC_Z) — aksonun ortasına yakın (z=3000 µm).
     pulse_width_ms : float, optional
         Her uyarım fazının süresi (ms). Varsayılan: DEFAULT_PULSE_WIDTH = 0.1 ms.
+    waveform : str, optional
+        "rectangular" (bifazik, yük dengeli), "dc" (monofazik) veya
+        "sinusoidal" (KHFAC). Varsayılan "rectangular".
 
     Döndürür
     --------
@@ -75,7 +79,7 @@ def run_level1(
     t_vec, i_vec = biphasic_waveform(
         freq_hz, amp, duration_ms, dt,
         pulse_width_ms=pulse_width_ms,
-        waveform="rectangular",
+        waveform=waveform,
     )
 
     run_stimulation_loop(sections, coords, elec_pos, i_vec, dt, v_init=DEFAULT_V_INIT_MV)
