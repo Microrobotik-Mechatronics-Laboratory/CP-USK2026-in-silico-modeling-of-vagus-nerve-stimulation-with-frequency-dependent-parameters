@@ -26,7 +26,7 @@ from typing import Any
 import numpy as np
 from neuron import h
 
-from config.defaults import MRG_PARAMS
+from config.defaults import MRG_PARAMS, MYELIN_CM_UF_CM2, MYELIN_G_S_CM2
 from src.models._neuron_mechanisms import ensure_mechanisms_loaded
 
 # NOT: h.celsius kasıtlı olarak set edilmiyor.
@@ -99,7 +99,8 @@ class MRGAxon:
         self.diameter = diameter_um
         self.n_nodes = n_nodes
 
-        node_diam, node_len, internode_len, n_lamellae = MRG_PARAMS[diameter_um]
+        node_diam, node_len, internode_len, n_lamellae, axon_diam = MRG_PARAMS[diameter_um]
+        self._axon_diam = axon_diam
         self._node_diam = node_diam
         self._node_len = node_len
         self._internode_len = internode_len
@@ -138,15 +139,25 @@ class MRGAxon:
         # --- Internodlar ---
         for i in range(self.n_nodes - 1):
             inter = h.Section(name=f"internode_{i}")
-            # g-ratio ≈ 0.7: iç akson çapı / toplam fiber çapı
-            # ~0.6-0.7 optimal; daha düşükse yavaşlar, daha yüksekse miyelin yetersiz
-            inter.diam = self.diameter * 0.7
+            # İç akson çapı (axonD) ModelDB 3810'dan geliyor; g-ratio çapa göre
+            # değiştiği için sabit 0.7 çarpanı yerine tablodaki değer kullanılır
+            # (g = axonD/fiberD: 5.7 µm'de 0.605, 16.0 µm'de 0.791).
+            inter.diam = self._axon_diam
             inter.L = self._internode_len
             inter.nseg = 6  # 750 µm bölüm — lambda/10 kuralı için 6 segment
 
             inter.insert("extracellular")
             inter.insert("pas")
-            inter.g_pas = 1e-6    # S/cm² — çok düşük: miyelin mükemmel yalıtır
+
+            # Miyelin kılıfı, seri bağlı 2*nl membran katmanıdır: eşdeğer
+            # kapasitans ve iletkenlik lamel sayısıyla ters orantılı azalır.
+            # Bu ölçekleme uygulanmazsa internode NEURON varsayılanı olan
+            # cm = 1 µF/cm² ile çıplak bir pasif kablo gibi davranır; saltatory
+            # iletim oluşmaz ve ileti hızı iki mertebe düşük çıkar
+            # (8.7 µm için 0.5 m/s; beklenen 40-49 m/s).
+            n_layers = 2 * self._n_lamellae
+            inter.cm = MYELIN_CM_UF_CM2 / n_layers      # µF/cm²
+            inter.g_pas = MYELIN_G_S_CM2 / n_layers     # S/cm²
             inter.e_pas = -80     # mV
 
             self.internodes.append(inter)

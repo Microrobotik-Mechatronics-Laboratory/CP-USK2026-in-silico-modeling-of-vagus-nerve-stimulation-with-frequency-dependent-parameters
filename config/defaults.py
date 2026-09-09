@@ -21,14 +21,24 @@ ELECTRODE_POS: tuple[float, float, float] = (500.0, 0.0, 5000.0)  # µm
 # MRG akson parametreleri
 # McIntyre, Richardson, Grill (2002) — ModelDB Acc. 3810
 # Anahtar: fiber çapı (µm)
-# Değer: (node_diam, node_length, internode_length, n_myelin_lamellae)
+# Değer: (node_diam, node_length, internode_length, n_myelin_lamellae, axon_diam)
+#
+# Değerler ModelDB 3810'daki MRGaxon.hoc dosyasından birebir alınmıştır
+# (nodeD, deltax, nl, axonD sütunları; node_length tüm çaplarda 1.0 µm).
 # ---------------------------------------------------------------------------
-MRG_PARAMS: dict[float, tuple[float, float, int, int]] = {
-    5.7:  (1.9, 1.0,  500, 80),   # Aδ — ağrı, sıcaklık
-    8.7:  (2.8, 1.0,  750, 110),  # Aβ — dokunma
-    12.8: (3.4, 1.0, 1150, 130),  # Aα — motor, propriosepsiyon
-    16.0: (4.7, 1.0, 1400, 150),  # Aα (kalın) — büyük motor
+MRG_PARAMS: dict[float, tuple[float, float, int, int, float]] = {
+    5.7:  (1.9, 1.0,  500,  80, 3.4),   # Aδ — ağrı, sıcaklık
+    8.7:  (2.8, 1.0, 1000, 110, 5.8),   # Aβ — dokunma
+    12.8: (4.2, 1.0, 1350, 135, 9.2),   # Aα — motor, propriosepsiyon
+    16.0: (5.5, 1.0, 1500, 150, 12.7),  # Aα (kalın) — büyük motor
 }
+
+# Miyelin kılıfının tek katman değerleri. Internode'un eşdeğer kapasitansı ve
+# iletkenliği bunların 2*n_lamellae'ye bölünmesiyle bulunur (seri bağlı
+# membran katmanları). Bu ölçekleme uygulanmazsa internode çıplak pasif kablo
+# gibi davranır ve saltatory iletim oluşmaz — bkz. src/models/mrg_axon.py.
+MYELIN_CM_UF_CM2: float = 1.0    # µF/cm² — tek membran katmanı kapasitansı
+MYELIN_G_S_CM2: float   = 0.001  # S/cm²  — tek membran katmanı sızıntısı
 
 # ---------------------------------------------------------------------------
 # Varsayılan simülasyon parametreleri
