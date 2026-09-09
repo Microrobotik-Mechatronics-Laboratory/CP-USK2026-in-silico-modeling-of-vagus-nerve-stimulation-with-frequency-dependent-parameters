@@ -32,6 +32,8 @@ from config.defaults import (
     LIF_E_SYN_MV,
     LIF_GL_NS,
     LIF_TAU_SYN_MS,
+    NTS_PARAMS,
+    NTS_FACILITATING_PARAMS,
 )
 
 # ---------------------------------------------------------------------------
@@ -85,8 +87,10 @@ def build_nts_relay(
         NTS popülasyon büyüklüğü. Varsayılan 50.
         Not: Notebook'ta 30 kullanılıyor; 50 daha pürüzsüz ortalama verir.
     synapse_type : str, optional
-        "depressing" (varsayılan): Yüksek U, uzun tau_d → depresyon dominant.
-        "facilitating": Düşük U, uzun tau_f → fasilitasyon dominant.
+        "depressing" (varsayılan): Yüksek U, uzun tau_d → depresyon dominant;
+        TM parametreleri config/defaults.py → NTS_PARAMS'tan gelir.
+        "facilitating": Düşük U, uzun tau_f → fasilitasyon dominant;
+        TM parametreleri NTS_FACILITATING_PARAMS'tan gelir.
     tau_m : float, optional
         Membran zaman sabiti (ms). Varsayılan 20 ms.
     refractory_ms : float, optional
@@ -120,12 +124,17 @@ def build_nts_relay(
     if synapse_type == "depressing":
         # Depresyon: yüksek U → her spike'ta büyük stok kullanımı → tükenir
         # Kısa tau_d → toparlanma hızlı ama yüksek frekansta yetersiz
-        U_val, tau_f_ms, tau_d_ms = 0.5, 20.0, 700.0
+        tm_params = NTS_PARAMS
     else:
         # Fasilitasyon: düşük U → ilk spike zayıf, art arda spike'larla u birikir
-        U_val, tau_f_ms, tau_d_ms = 0.05, 500.0, 100.0
+        tm_params = NTS_FACILITATING_PARAMS
+    U_val = tm_params["U"]
+    tau_f_ms = tm_params["tau_f_ms"]
+    tau_d_ms = tm_params["tau_d_ms"]
 
-    def make_synapses(source: NeuronGroup, p: float = 0.3, w: float = 6.0) -> Synapses:
+    def make_synapses(
+        source: NeuronGroup, p: float = NTS_PARAMS["p"], w: float = NTS_PARAMS["w_nS"],
+    ) -> Synapses:
         """Afferent kaynak → NTS hedef TM sinapsı oluşturur."""
         syn = Synapses(source, nts, model=TM_SYN_EQS, on_pre=TM_ON_PRE, method="euler")
         syn.connect(p=p)

@@ -105,6 +105,15 @@ NTS_PARAMS: dict[str, float] = {
     "w_nS": 6.0,
 }
 
+# NTS afferent sinapsının alternatif "facilitating" varyantı.
+# build_nts_relay(synapse_type="facilitating") bu değerleri kullanır; ana
+# pipeline (run_full_network) her zaman yukarıdaki NTS_PARAMS'ı kullanır.
+NTS_FACILITATING_PARAMS: dict[str, float] = {
+    "U": 0.05,
+    "tau_f_ms": 500.0,
+    "tau_d_ms": 100.0,
+}
+
 # ---------------------------------------------------------------------------
 # Downstream bölge parametreleri (Level 3)
 # ---------------------------------------------------------------------------
