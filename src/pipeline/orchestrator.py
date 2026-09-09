@@ -24,8 +24,13 @@ from config.defaults import (
     NAC_PATHWAY_PARAMS,
     INSULA_PATHWAY_PARAMS,
     CA3_PATHWAY_PARAMS,
+    DEFAULT_N_REPEATS,
+    DEFAULT_SEED,
 )
-from typing import Any
+from typing import Any, Optional
+
+import numpy as np
+from brian2 import seed as brian_seed
 
 from src.pipeline.level1 import run_level1
 from src.pipeline.level23 import run_full_network
@@ -76,6 +81,8 @@ def run_one_frequency(
     n_nodes: int = DEFAULT_N_NODES,
     elec_pos: tuple[float, float, float] = (DEFAULT_ELEC_DIST, 0.0, DEFAULT_ELEC_Z),
     pulse_width_ms: float = DEFAULT_PULSE_WIDTH,
+    analysis_window_ms: Optional[float] = None,
+    n_repeats: int = DEFAULT_N_REPEATS, seed: int = DEFAULT_SEED,
 ) -> dict[str, Any]:
     """
     Tek frekans için tam Level 1 → Level 2-3 pipeline çalıştırır.
@@ -98,47 +105,67 @@ def run_one_frequency(
         Elektrot konumu (µm). Varsayılan (DEFAULT_ELEC_DIST, 0, DEFAULT_ELEC_Z).
     pulse_width_ms : float, optional
         Her uyarım fazının süresi (ms). Varsayılan DEFAULT_PULSE_WIDTH = 0.1 ms.
+    analysis_window_ms : float, optional
+        Tüm frekanslarda kullanılacak sabit simülasyon/analiz penceresi (ms).
+        None ise cycles_to_duration_ms() ile frekansa göre uyarlanır.
+        Frekanslar arası karşılaştırma yapılacaksa sabit pencere kullanın:
+        Hz/nöron = spike / nöron / süre olduğundan, süre frekansla değişirse
+        oran da mekanik olarak değişir ve gerçek bir frekans etkisiymiş gibi
+        görünür.
+    n_repeats : int, optional
+        Level 2-3 tekrar sayısı. Varsayılan DEFAULT_N_REPEATS = 5.
+    seed : int, optional
+        Taban rastgele tohum. Tekrar r için `seed + r` kullanılır.
 
     Döndürür
     --------
     dict
         Anahtarlar:
-            "freq_hz"       : float — stimülasyon frekansı
-            "duration_ms"   : float — kullanılan simülasyon süresi
-            "n_axon_spikes" : int   — Level 1'de oluşan axon spike sayısı
-            "NTS"           : float — NTS ortalama ateşleme hızı (Hz/nöron)
-            "NAc"           : float — NAc ortalama ateşleme hızı (Hz/nöron)
-            "Insula"        : float — İnsula ortalama ateşleme hızı (Hz/nöron)
-            "CA3"           : float — CA3 ortalama ateşleme hızı (Hz/nöron)
+            "freq_hz"          : float — stimülasyon frekansı
+            "duration_ms"      : float — kullanılan simülasyon süresi
+            "n_axon_spikes"    : int   — Level 1'de oluşan axon spike sayısı
+            "n_pulses"         : int   — uygulanan uyarım pulsu sayısı
+            "follow_ratio"     : float — akson spike / puls (1:1 takip oranı)
+            "<bölge>"          : float — ortalama ateşleme hızı (Hz/nöron)
+            "<bölge>_sd"       : float — tekrarlar arası standart sapma
+            "<bölge>_n_spikes" : float — ortalama toplam spike sayısı
+        Bölgeler: NTS, NAc, Insula, CA3.
 
     Notlar
     ------
     Eğer axon spike oluşmadıysa (amp çok düşük), tüm bölgeler 0.0 Hz döner.
-    Stokastik çalışma: Her çağrı farklı sonuç verebilir.
-    Güvenilir sonuç için 5-10 tekrar yapıp ortalamasını alın.
+    Level 1 deterministiktir; akson bir kez simüle edilip spike treni tüm
+    tekrarlarda yeniden kullanılır, bu yüzden tekrar maliyeti düşüktür.
     Kaynak: nerve_frequency_study_colab.ipynb — Cell 28
     """
-    duration_ms = cycles_to_duration_ms(freq_hz)
+    duration_ms = (cycles_to_duration_ms(freq_hz) if analysis_window_ms is None
+                   else analysis_window_ms)
     spikes = run_level1(
         freq_hz=freq_hz, amp=amp, duration_ms=duration_ms,
         fiber_diam=fiber_diam, n_nodes=n_nodes, elec_pos=elec_pos,
         pulse_width_ms=pulse_width_ms,
     )
+    n_pulses = int(np.ceil(duration_ms * freq_hz / 1000.0))
 
     if verbose:
         print(f"  {freq_hz} Hz → axon spikes: {len(spikes)}", end="  ")
 
+    regions = ("NTS", "NAc", "Insula", "CA3")
     if len(spikes) == 0:
         if verbose:
             print("(eşik altı — tüm bölgeler 0 Hz)")
-        return {
+        record: dict[str, Any] = {
             "freq_hz": freq_hz,
             "duration_ms": duration_ms,
             "n_axon_spikes": 0,
-            "NTS": 0.0, "NAc": 0.0, "Insula": 0.0, "CA3": 0.0,
+            "n_pulses": n_pulses,
+            "follow_ratio": 0.0,
         }
-
-    mons = run_full_network(spikes, duration_ms=duration_ms, n_fibers=n_fibers)
+        for region in regions:
+            record[region] = 0.0
+            record[f"{region}_sd"] = 0.0
+            record[f"{region}_n_spikes"] = 0.0
+        return record
 
     n_neurons = {
         "NTS": NTS_PARAMS["n_neurons"],
@@ -146,10 +173,27 @@ def run_one_frequency(
         "Insula": INSULA_PATHWAY_PARAMS["n_neurons"],
         "CA3": CA3_PATHWAY_PARAMS["n_neurons"],
     }
-    rates = {
-        region: mon.num_spikes / n_neurons[region] / (duration_ms / 1000.0)
-        for region, mon in mons.items()
-    }
+
+    # Level 1 (NEURON) deterministiktir; yalnızca Level 2-3 (Brian2 bağlantı
+    # örneklemesi ve fiber jitter'ı) stokastiktir. Bu yüzden akson simülasyonu
+    # bir kez çalıştırılıp spike treni tekrarlar arasında yeniden kullanılır.
+    per_repeat: dict[str, list[float]] = {region: [] for region in regions}
+    counts: dict[str, list[float]] = {region: [] for region in regions}
+    for repeat in range(n_repeats):
+        brian_seed(seed + repeat)
+        np.random.seed(seed + repeat)
+        mons = run_full_network(spikes, duration_ms=duration_ms, n_fibers=n_fibers)
+        for region, mon in mons.items():
+            counts[region].append(float(mon.num_spikes))
+            per_repeat[region].append(
+                mon.num_spikes / n_neurons[region] / (duration_ms / 1000.0)
+            )
+
+    rates: dict[str, Any] = {}
+    for region in regions:
+        rates[region] = float(np.mean(per_repeat[region]))
+        rates[f"{region}_sd"] = float(np.std(per_repeat[region]))
+        rates[f"{region}_n_spikes"] = float(np.mean(counts[region]))
 
     if verbose:
         print(f"NTS={rates['NTS']:.2f} NAc={rates['NAc']:.2f} "
@@ -158,6 +202,8 @@ def run_one_frequency(
     rates["freq_hz"] = freq_hz
     rates["duration_ms"] = duration_ms
     rates["n_axon_spikes"] = len(spikes)
+    rates["n_pulses"] = n_pulses
+    rates["follow_ratio"] = len(spikes) / n_pulses if n_pulses else 0.0
     return rates
 
 
@@ -167,6 +213,8 @@ def run_frequency_sweep(
     n_nodes: int = DEFAULT_N_NODES,
     elec_pos: tuple[float, float, float] = (DEFAULT_ELEC_DIST, 0.0, DEFAULT_ELEC_Z),
     pulse_width_ms: float = DEFAULT_PULSE_WIDTH,
+    analysis_window_ms: Optional[float] = None,
+    n_repeats: int = DEFAULT_N_REPEATS, seed: int = DEFAULT_SEED,
 ) -> list[dict[str, Any]]:
     """
     Verilen frekans listesi için tam sweep çalıştırır.
@@ -209,7 +257,8 @@ def run_frequency_sweep(
         rec = run_one_frequency(
             f, amp=amp, n_fibers=n_fibers, verbose=verbose,
             fiber_diam=fiber_diam, n_nodes=n_nodes, elec_pos=elec_pos,
-            pulse_width_ms=pulse_width_ms,
+            pulse_width_ms=pulse_width_ms, analysis_window_ms=analysis_window_ms,
+            n_repeats=n_repeats, seed=seed,
         )
         records.append(rec)
     return records

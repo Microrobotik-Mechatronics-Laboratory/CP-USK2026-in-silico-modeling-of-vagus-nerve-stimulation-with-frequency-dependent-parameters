@@ -93,6 +93,16 @@ DEFAULT_BRIAN_DT_MS: float = 0.1   # defaultclock.dt (ms) — run_levels_2_3 ve 
 AXON_REFRACTORY_MS: float = 1.0
 
 # ---------------------------------------------------------------------------
+# Tekrarlanabilirlik ve istatistik
+# ---------------------------------------------------------------------------
+# Level 1 (NEURON) deterministiktir; stokastiklik yalnızca Level 2-3'te
+# (Brian2 bağlantı örneklemesi ve fiber jitter'ı) bulunur. Bu yüzden akson
+# simülasyonu bir kez çalıştırılıp spike treni tekrarlar arasında paylaşılır —
+# tekrar maliyeti neredeyse sıfırdır.
+DEFAULT_N_REPEATS: int = 5    # Koşul başına tekrar sayısı (ortalama ± SD için)
+DEFAULT_SEED: int      = 1000  # Taban rastgele tohum; tekrar r için seed + r
+
+# ---------------------------------------------------------------------------
 # Tarama frekansları
 # ---------------------------------------------------------------------------
 # Aktivasyon bölgesi (düşük frekans) + KHFAC blok bölgesi (yüksek frekans)
