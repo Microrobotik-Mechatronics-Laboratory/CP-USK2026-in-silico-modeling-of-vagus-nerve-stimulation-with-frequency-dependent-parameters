@@ -270,10 +270,8 @@ def panel_d(ax):
         ax.text(55.0, cy - 1.4,
                 f"{kind} · U = {prm['U']} · $\\tau_f$ = {prm['tau_f_ms']:.0f} ms",
                 fontsize=6.7, color=GRAY, ha="left", va="center")
-    ax.add_patch(FancyArrowPatch((44.5, 3.4), (51.5, 3.4),
-                                 connectionstyle="arc3,rad=-0.85",
-                                 arrowstyle="-|>", mutation_scale=7, lw=0.8,
-                                 color=C_CA3, zorder=6))
+    # Rekürrent kolateral yalnızca metinle belirtilir; yay şeklindeki ok CA3
+    # nokta bulutunun üzerine bindiği için kaldırıldı.
     ax.text(48.0, 0.2, f"rekürrent, p = {CA3_PATHWAY_PARAMS['recurrent_p']}",
             fontsize=6.5, color=C_CA3, ha="center", va="bottom")
     ax.text(33.7, 40.5, "ardışık EPSC genlikleri (20 Hz)", fontsize=6.7,
